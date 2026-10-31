@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
-<title>かきオイスター</title>
-<ellipse cx="128" cy="232" rx="70" ry="10" fill="#000" opacity=".12"/>
-<path d="M128 44 C 178 104 210 140 210 170 a82 62 0 0 1 -164 0 C 46 140 78 104 128 44 Z" fill="#72ded5" stroke="#1e514d" stroke-width="6" stroke-linejoin="round"/>
-<path d="M190 52 l7 15 16 2 -12 11 3 16 -14 -8 -14 8 3 -16 -12 -11 16 -2 Z" fill="#ffd94a" stroke="#1e514d" stroke-width="4" stroke-linejoin="round"/>
-<circle cx="100" cy="138" r="11" fill="#1e514d"/><circle cx="156" cy="138" r="11" fill="#1e514d"/><circle cx="104" cy="134" r="4" fill="#fff"/><circle cx="160" cy="134" r="4" fill="#fff"/><ellipse cx="82" cy="160" rx="12" ry="7" fill="#ff8fa3" opacity=".6"/><ellipse cx="174" cy="160" rx="12" ry="7" fill="#ff8fa3" opacity=".6"/><path d="M112 164 q8 8 16 0 q8 8 16 0" fill="none" stroke="#1e514d" stroke-width="5" stroke-linecap="round"/>
-</svg>

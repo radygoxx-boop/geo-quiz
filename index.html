@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="中学受験の地理を4択クイズで楽しく覚えるアプリ">
+<meta name="theme-color" content="#1d5c84">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="地理クイズ">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="images/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
+<title>地理クイズ</title>
+<!--
+  ★ 出題数・出題順を変えたいときは、下の <script> の先頭にある
+    「出題設定」の囲み枠(QUESTION_LIMIT / QUESTION_ORDER)を書きかえてください。
+-->
+<style>
+:root {
+  --sea: #1d5c84;
+  --sea-deep: #123f5c;
+  --sea-text: #1d5c84;
+  --land: #4f8f3a;
+  --land-soft: #dcebd2;
+  --contour: #b0683a;
+  --paper: #e9f0ec;
+  --card: #fbfdfb;
+  --ink: #1f2b2f;
+  --muted: #5b6a6f;
+  --line: #c6d4ce;
+  --ok: #23804e;
+  --ok-bg: #dff2e6;
+  --ng: #c2412b;
+  --ng-bg: #fbe4de;
+  --r-secret: #7d3c98;
+  --r-sr: #c18c0c;
+  --r-r: #2e78c7;
+  --r-n: #7b858c;
+  --radius: 16px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sea-text: #8cc6ea;
+    --land-soft: #1f3a2b;
+    --contour: #d38a5a;
+    --paper: #0f1c20;
+    --card: #182a30;
+    --ink: #e5eeeb;
+    --muted: #9db1b2;
+    --line: #2d454c;
+    --ok: #5fd08f;
+    --ok-bg: #173a29;
+    --ng: #ff8a73;
+    --ng-bg: #40201a;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", "BIZ UDPGothic", "Noto Sans JP", "Yu Gothic", "Meiryo", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid #f2b705; outline-offset: 2px; }
+#app { max-width: 520px; margin: 0 auto; padding: 16px 16px 32px; min-height: 100%; }
+.screen { display: flex; flex-direction: column; gap: 16px; }
+h1, h2, h3 { margin: 0; line-height: 1.3; }
+p { margin: 0; }
+
+/* ---------- ボタン ---------- */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; min-height: 56px; padding: 10px 18px;
+  border: 2px solid var(--line); border-radius: 14px;
+  background: var(--card); font-size: 1.05rem; font-weight: 700;
+}
+.btn.primary { background: var(--sea); border-color: var(--sea); color: #fff; }
+.btn.big { min-height: 64px; font-size: 1.25rem; }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn small { font-weight: 400; color: inherit; opacity: .8; }
+.link { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 8px; font-size: .9rem; }
+
+.topbar { display: flex; align-items: center; gap: 8px; min-height: 48px; }
+.topbar h2 { font-size: 1.3rem; }
+.back {
+  flex: none; width: 48px; height: 48px; border-radius: 12px;
+  border: 2px solid var(--line); background: var(--card); font-size: 1.3rem; font-weight: 700;
+}
+.lead { color: var(--muted); font-size: .95rem; }
+
+/* ---------- タイトル(等高線の地図) ---------- */
+.hero {
+  position: relative; overflow: hidden;
+  border-radius: 24px; background: var(--sea);
+  color: #fff; padding: 56px 24px 28px; min-height: 300px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.hero svg.contours { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero h1 {
+  position: relative; font-size: clamp(2.8rem, 15vw, 4.2rem); font-weight: 900;
+  letter-spacing: .06em; line-height: 1.05;
+  text-shadow: 0 3px 0 var(--sea-deep);
+}
+.hero p { position: relative; margin-top: 10px; font-size: 1.05rem; opacity: .95; }
+.title-stats { display: flex; gap: 10px; }
+.title-stats div {
+  flex: 1; background: var(--card); border: 2px solid var(--line); border-radius: 14px;
+  padding: 10px 12px; font-size: .85rem; color: var(--muted);
+}
+.title-stats b { display: block; font-size: 1.35rem; color: var(--ink); }
+.notice { font-size: .85rem; color: var(--muted); text-align: center; }
+
+/* ---------- 分野選択 ---------- */
+.legend { font-size: .85rem; color: var(--muted); }
+.legend .mark { width: 18px; height: 18px; vertical-align: -3px; margin-right: 4px; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  text-align: left; padding: 14px; min-height: 128px;
+  background: var(--card); border: 2px solid var(--line); border-radius: var(--radius);
+}
+.field:disabled { opacity: .5; }
+.f-icon { font-size: 1.8rem; line-height: 1; }
+.f-name { font-size: 1.1rem; font-weight: 800; }
+.f-meta { font-size: .85rem; color: var(--muted); }
+.f-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: auto; }
+.marks { display: inline-flex; gap: 4px; }
+.mark {
+  width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--line);
+  display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 900;
+}
+.mark.on { background: var(--land); border-color: var(--land); color: #fff; }
+.f-own { font-size: .8rem; color: var(--muted); }
+
+/* ---------- 難易度選択 ---------- */
+.diffs { display: flex; flex-direction: column; gap: 12px; }
+.diff {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 12px;
+  text-align: left; padding: 16px 18px; min-height: 84px;
+  background: var(--card); border: 2px solid var(--line); border-radius: var(--radius);
+}
+.diff:disabled { opacity: .5; }
+.diff .d-name { font-size: 1.25rem; font-weight: 800; }
+.diff .d-meta { grid-column: 1; font-size: .88rem; color: var(--muted); }
+.diff .badge { grid-row: 1 / span 2; grid-column: 2; }
+.badge {
+  display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: .8rem; font-weight: 800;
+  background: var(--land); color: #fff;
+}
+.badge.todo { background: transparent; color: var(--muted); border: 2px dashed var(--line); }
+
+/* ---------- クイズ ---------- */
+.quiz-top { display: flex; align-items: center; gap: 10px; }
+.quiz-top .pos { font-weight: 800; font-size: 1.1rem; }
+.quiz-top .score { margin-left: auto; text-align: right; font-size: .8rem; color: var(--muted); line-height: 1.2; }
+.quiz-top .score b { display: block; font-size: 1.4rem; color: var(--ink); }
+.bar { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--land); border-radius: 999px; transition: width .3s; }
+.q-info { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .85rem; }
+.chip { padding: 3px 10px; border-radius: 999px; background: var(--card); border: 1.5px solid var(--line); color: var(--muted); }
+.chip.combo { background: #f2b705; border-color: #f2b705; color: #3a2a00; font-weight: 800; }
+.chip.combo:empty { display: none; }
+.chip.pop { animation: pop .35s ease-out; }
+@keyframes pop { 0% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.question {
+  background: var(--card); border: 2px solid var(--line); border-radius: var(--radius);
+  padding: 18px; font-size: 1.15rem; font-weight: 700; line-height: 1.7;
+}
+.choices { display: flex; flex-direction: column; gap: 10px; }
+.choice {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px;
+  padding: 10px 14px; text-align: left; font-size: 1.05rem; font-weight: 700;
+  background: var(--card); border: 2px solid var(--line); border-radius: 14px;
+}
+.letter {
+  flex: none; width: 34px; height: 34px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 2.5px solid var(--sea-text); color: var(--sea-text); font-weight: 900;
+}
+.choice.correct { background: var(--ok-bg); border-color: var(--ok); }
+.choice.correct .letter { background: var(--ok); border-color: var(--ok); color: #fff; }
+.choice.wrong { background: var(--ng-bg); border-color: var(--ng); }
+.choice.wrong .letter { background: var(--ng); border-color: var(--ng); color: #fff; }
+.choice.dim { opacity: .55; }
+.feedback {
+  display: flex; flex-direction: column; gap: 12px;
+  background: var(--card); border: 2px solid var(--line); border-radius: var(--radius); padding: 16px;
+}
+.feedback[hidden] { display: none; }
+.verdict { font-size: 1.4rem; font-weight: 900; }
+.verdict.ok { color: var(--ok); }
+.verdict.ng { color: var(--ng); }
+.hint { border-left: 4px solid var(--contour); padding: 2px 0 2px 12px; }
+.hint span { display: block; font-size: .8rem; font-weight: 800; color: var(--contour); }
+
+/* ---------- 結果 ---------- */
+.result-head { text-align: center; padding: 8px 0; }
+.grade {
+  width: 128px; height: 128px; margin: 0 auto 8px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 4.2rem; font-weight: 900; color: #fff; background: var(--sea);
+  box-shadow: inset 0 0 0 6px rgba(255,255,255,.35);
+}
+.grade.S { background: var(--r-sr); }
+.result-head .count { font-size: 1.6rem; font-weight: 900; }
+.result-head .msg { color: var(--muted); margin-top: 4px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.stats div {
+  background: var(--card); border: 2px solid var(--line); border-radius: 14px;
+  padding: 10px; text-align: center; font-size: .8rem; color: var(--muted);
+}
+.stats b { display: block; font-size: 1.3rem; color: var(--ink); }
+.clear-msg { text-align: center; font-weight: 800; padding: 12px; border-radius: 14px; background: var(--land-soft); }
+.clear-msg.not { background: var(--card); border: 2px dashed var(--line); font-weight: 700; color: var(--muted); }
+.reward {
+  display: flex; gap: 14px; align-items: center;
+  background: var(--card); border: 3px solid var(--rc, var(--line)); border-radius: var(--radius); padding: 14px;
+}
+.reward img { width: 88px; height: 88px; flex: none; }
+.reward .r-title { font-size: .85rem; color: var(--muted); }
+.reward .r-name { font-size: 1.2rem; font-weight: 900; }
+.new { color: #fff; background: var(--ng); border-radius: 6px; padding: 1px 6px; font-size: .75rem; font-weight: 900; margin-left: 6px; vertical-align: 2px; }
+.rarity { display: inline-block; padding: 1px 8px; border-radius: 6px; color: #fff; font-size: .75rem; font-weight: 900; background: var(--rc); }
+
+/* ---------- 図鑑 ---------- */
+.zukan-total { font-weight: 800; }
+.group h3 { font-size: 1rem; display: flex; align-items: center; gap: 8px; margin: 4px 0 8px; }
+.group h3 small { color: var(--muted); font-weight: 400; }
+.cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cell {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 4px 10px; background: var(--card);
+  border: 2px solid var(--line); border-top: 6px solid var(--rc); border-radius: 12px;
+  font-size: .78rem; line-height: 1.3; min-height: 132px;
+}
+.cell img { width: 72px; height: 72px; }
+.cell .c-name { font-weight: 800; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
+.locked img, .modal .locked { filter: brightness(0) opacity(.22); }
+@media (prefers-color-scheme: dark) { .locked img, .modal .locked { filter: brightness(0) invert(1) opacity(.18); } }
+.img-fallback { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--muted); }
+
+/* ---------- モーダル・トースト ---------- */
+.modal {
+  position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 20, 24, .6); padding: 24px;
+}
+.modal[hidden] { display: none; }
+.modal-card {
+  width: 100%; max-width: 380px; background: var(--card); border-radius: 20px;
+  border-top: 10px solid var(--rc, var(--line));
+  padding: 20px; display: flex; flex-direction: column; gap: 10px; text-align: center;
+}
+.modal-card img { width: 180px; height: 180px; margin: 0 auto; }
+.modal-card h3 { font-size: 1.4rem; }
+.modal-card .desc { text-align: left; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 30;
+  transform: translateX(-50%); background: var(--ink); color: var(--paper);
+  padding: 10px 18px; border-radius: 999px; font-size: .95rem; max-width: 90vw;
+}
+.toast[hidden] { display: none; }
+
+.error-box {
+  background: var(--card); border: 2px solid var(--ng); border-radius: var(--radius); padding: 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.error-box h2 { color: var(--ng); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<main id="app" aria-live="polite">
+  <p class="notice" style="padding-top:40vh">読み込み中…</p>
+</main>
+<div id="modal" class="modal" hidden role="dialog" aria-modal="true"></div>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script>
+'use strict';
+
+/* ╔══════════════════════════════════════════════════════════════╗
+ * ║  ★★★ 出題設定(ここだけ書きかえればOK)★★★                    ║
+ * ║                                                              ║
+ * ║  QUESTION_LIMIT … null = その分野×難易度の問題を全部出す       ║
+ * ║                   数字   = 出す問題数の上限(例: 10)          ║
+ * ║  QUESTION_ORDER … 'fixed'  = Notionに追加した順(毎回同じ順)  ║
+ * ║                   'random' = 毎回ランダムな順                 ║
+ * ║  CLEAR_RATE     … クリアに必要な正答率(0.8 = 80%以上)        ║
+ * ║                                                              ║
+ * ║  ※ 書きかえたら sw.js の CACHE_NAME の数字も1つ上げてください ║
+ * ╚══════════════════════════════════════════════════════════════╝ */
+const QUESTION_LIMIT = null;    // null=全問、数字=上限問題数
+const QUESTION_ORDER = 'fixed'; // 'fixed'=追加順、'random'=ランダム
+const CLEAR_RATE = 0.8;         // クリアに必要な正答率
+
+/* ---------- ゲームの定数 ---------- */
+const SECRET_RATE = 0.05; // 全分野クリア後、満点のときにシークレットが出る確率
+const RARITY = {
+  SECRET: { label: 'SECRET', color: 'var(--r-secret)' },
+  SR:     { label: 'SR',     color: 'var(--r-sr)' },
+  R:      { label: 'R',      color: 'var(--r-r)' },
+  N:      { label: 'N',      color: 'var(--r-n)' },
+};
+const RARITY_WEIGHT = { N: 60, R: 30, SR: 10, SECRET: 1 }; // 抽選の重み(大きいほど出やすい)
+const STORAGE_KEY = 'geoQuiz.progress.v1';
+const DEFAULT_DIFFS = [
+  { id: 'easy', name: '★ やさしい' },
+  { id: 'normal', name: '★★ ふつう' },
+  { id: 'hard', name: '★★★ むずかしい' },
+];
+
+/* ---------- キャラクター図鑑(画像は images/chars/{id}.svg) ---------- */
+const CHARACTERS = [
+  { id: "hokkaido_tohoku_1", field: "hokkaido_tohoku", name: "ホタテっ子", rarity: "N", desc: "陸奥湾と北海道の海で育ったホタテの子。貝がらをパカパカ鳴らしてあいさつする。" },
+  { id: "hokkaido_tohoku_2", field: "hokkaido_tohoku", name: "りんごろう", rarity: "N", desc: "津軽平野生まれのりんご。日本一の生産量がちょっぴり自慢。" },
+  { id: "hokkaido_tohoku_3", field: "hokkaido_tohoku", name: "ラベンダー姫", rarity: "R", desc: "富良野のラベンダー畑に住むお姫さま。夏になるとむらさきのドレスで現れる。" },
+  { id: "hokkaido_tohoku_4", field: "hokkaido_tohoku", name: "なまはげドン", rarity: "R", desc: "秋田・男鹿半島からやってきた。こわい顔だけど、なまけ心を追いはらう守り神。" },
+  { id: "hokkaido_tohoku_5", field: "hokkaido_tohoku", name: "ヒグマ大将", rarity: "SR", desc: "北の大地・北海道を守る大将。やませにも冬の寒さにも負けない力もち。" },
+  { id: "kanto_1", field: "kanto", name: "ねぎまる", rarity: "N", desc: "埼玉県深谷生まれのねぎ。近郊農業で毎朝東京へ出かけていく。" },
+  { id: "kanto_2", field: "kanto", name: "らっかせいさん", rarity: "N", desc: "千葉県の畑で育った落花生。からの中でふたごの兄弟と仲よしにくらしている。" },
+  { id: "kanto_3", field: "kanto", name: "キャベツ坊や", rarity: "R", desc: "群馬県嬬恋村の高原育ち。すずしい夏に元気いっぱいに育つ抑制栽培の名人。" },
+  { id: "kanto_4", field: "kanto", name: "ローム先生", rarity: "R", desc: "関東平野の赤土・関東ロームの研究者。火山灰の話になると止まらない。" },
+  { id: "kanto_5", field: "kanto", name: "とねがわリュウ", rarity: "SR", desc: "流域面積日本一の利根川にすむ竜。「坂東太郎」の名で親しまれている。" },
+  { id: "chubu_1", field: "chubu", name: "ちゃっぴー", rarity: "N", desc: "牧ノ原台地の茶畑で生まれた茶の葉っぱ。新茶の季節がいちばん好き。" },
+  { id: "chubu_2", field: "chubu", name: "めがねん", rarity: "N", desc: "福井県鯖江市生まれのめがね。冬の手仕事から生まれた技をほこりにしている。" },
+  { id: "chubu_3", field: "chubu", name: "ライチョウさん", rarity: "R", desc: "日本アルプスの高い山にすむ鳥。冬は真っ白、夏は茶色に衣がえする。" },
+  { id: "chubu_4", field: "chubu", name: "しなのがわ丸", rarity: "R", desc: "日本一長い信濃川を旅する舟。長野では「千曲川」と名乗っている。" },
+  { id: "chubu_5", field: "chubu", name: "フジヤマ王", rarity: "SR", desc: "標高3776m、日本一高い山の王さま。静岡と山梨の両方から見守っている。" },
+  { id: "kinki_1", field: "kinki", name: "うめぼし姫", rarity: "N", desc: "和歌山県の南高梅から生まれたお姫さま。すっぱい顔が得意技。" },
+  { id: "kinki_2", field: "kinki", name: "しんじゅちゃん", rarity: "N", desc: "英虞湾のおだやかな海で育った真珠。光をあびるとキラキラかがやく。" },
+  { id: "kinki_3", field: "kinki", name: "びわこナマズ", rarity: "R", desc: "日本一大きい湖・琵琶湖の主。「近畿の水がめ」を毎日見回っている。" },
+  { id: "kinki_4", field: "kinki", name: "よしのスギ兄", rarity: "R", desc: "紀伊山地の森で育った吉野すぎ。まっすぐな木目がじまん。" },
+  { id: "kinki_5", field: "kinki", name: "子午線マスター", rarity: "SR", desc: "明石市の東経135度線に立つ時の番人。日本の時刻はここから決まる。" },
+  { id: "chugoku_shikoku_1", field: "chugoku_shikoku", name: "さぬきうどん丸", rarity: "N", desc: "香川県のうどん。ため池の水で育った小麦でコシの強さをきたえた。" },
+  { id: "chugoku_shikoku_2", field: "chugoku_shikoku", name: "すだちっこ", rarity: "N", desc: "徳島県生まれのすだち。焼き魚にしぼられるのが生きがい。" },
+  { id: "chugoku_shikoku_3", field: "chugoku_shikoku", name: "かきオイスター", rarity: "R", desc: "広島湾のいかだで育ったかき。生産量日本一のチームの一員。" },
+  { id: "chugoku_shikoku_4", field: "chugoku_shikoku", name: "さきゅうラクダ", rarity: "R", desc: "鳥取砂丘を旅するラクダ。日本海からの風で砂の模様をえがく。" },
+  { id: "chugoku_shikoku_5", field: "chugoku_shikoku", name: "せとおおはし号", rarity: "SR", desc: "本州と四国を結ぶ橋の精。瀬戸内海の島々を見わたすのが日課。" },
+  { id: "kyushu_1", field: "kyushu", name: "さとうきびー", rarity: "N", desc: "沖縄の畑でぐんぐんのびるさとうきび。台風にも負けないしなやかさをもつ。" },
+  { id: "kyushu_2", field: "kyushu", name: "シラスどん", rarity: "N", desc: "鹿児島のシラス台地の住人。水はけのよさを生かしてさつまいもを育てる。" },
+  { id: "kyushu_3", field: "kyushu", name: "シーサー兄弟", rarity: "R", desc: "沖縄の家の屋根を守るシーサー。口を開けた兄と閉じた弟のふたり組。" },
+  { id: "kyushu_4", field: "kyushu", name: "さくらじまドン", rarity: "R", desc: "鹿児島湾にそびえる火山。ときどき火山灰をふいて、みんなをびっくりさせる。" },
+  { id: "kyushu_5", field: "kyushu", name: "アソカルデラ竜", rarity: "SR", desc: "阿蘇山の巨大カルデラにねむる竜。くぼ地の町や村をやさしく包んでいる。" },
+  { id: "world_1", field: "world", name: "ペンギン隊長", rarity: "N", desc: "南極大陸から来た隊長。寒さにはだれよりも強い。" },
+  { id: "world_2", field: "world", name: "ラクダ旅人", rarity: "N", desc: "サハラ砂漠をこえてきた旅人。オアシスの場所なら何でも知っている。" },
+  { id: "world_3", field: "world", name: "カンガルーボクサー", rarity: "R", desc: "オーストラリアの大地をかけるボクサー。南半球では季節が日本と逆だと教えてくれる。" },
+  { id: "world_4", field: "world", name: "アマゾンカワイルカ", rarity: "R", desc: "南アメリカのアマゾン川にすむピンク色のイルカ。熱帯雨林の守り手。" },
+  { id: "world_5", field: "world", name: "赤道の守り神", rarity: "SR", desc: "地球をぐるりと一周する赤道を守る神さま。緯度0度が自分の家。" },
+  { id: "industry_1", field: "industry", name: "コンパスくん", rarity: "N", desc: "方位を指し示す道案内役。「地図の上は北!」が口ぐせ。" },
+  { id: "industry_2", field: "industry", name: "とうこうせん坊", rarity: "N", desc: "等高線の化身。間隔がせまいところでは、つい息が切れてしまう。" },
+  { id: "industry_3", field: "industry", name: "しゅくしゃく侍", rarity: "R", desc: "縮尺を自在にあやつる侍。2万5千分の1の地図で4cmは1kmと即答する。" },
+  { id: "industry_4", field: "industry", name: "こうじょうロボ", rarity: "R", desc: "工業地帯ではたらくロボット。自動車も鉄鋼もおまかせ。" },
+  { id: "industry_5", field: "industry", name: "そくりょう仙人", rarity: "SR", desc: "日本中を歩いて測った伝説の仙人。正確な地図づくりの心を伝えている。" },
+  { id: "secret_a", field: "secret", name: "ニッポン列島竜", rarity: "SECRET", desc: "北海道から沖縄まで、日本列島そのものが竜になった姿。すべての分野を制した者の前に現れる。" },
+  { id: "secret_b", field: "secret", name: "ちきゅうぎ大王", rarity: "SECRET", desc: "地球儀の中に住む大王。世界の国と海をすべて知りつくしている。" },
+  { id: "secret_c", field: "secret", name: "黄金の羅針盤", rarity: "SECRET", desc: "伝説の黄金のコンパス。持ち主を次の冒険へみちびくという。" },
+];
+
+/* =================================================================
+ *  記録の保存(localStorage が使えなくても動くようにする)
+ * ================================================================= */
+const Progress = (() => {
+  const empty = () => ({ clears: {}, best: {}, owned: {} });
+  let data = empty();
+  let available = true;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (p && typeof p === 'object') {
+        data = { clears: p.clears || {}, best: p.best || {}, owned: p.owned || {} };
+      }
+    }
+  } catch (e) { available = false; }
+  return {
+    get data() { return data; },
+    get available() { return available; },
+    save() {
+      try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+      catch (e) { available = false; }
+    },
+    reset() { data = empty(); this.save(); },
+  };
+})();
+
+/* =================================================================
+ *  状態とユーティリティ
+ * ================================================================= */
+const S = { fields: [], diffs: [], questions: {}, generatedAt: null, field: null, quiz: null };
+let screen = 'loading';
+const $app = document.getElementById('app');
+const $modal = document.getElementById('modal');
+const $toast = document.getElementById('toast');
+
+const esc = (s) => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+const LETTERS = ['A', 'B', 'C', 'D'];
+
+function render(name, html) {
+  screen = name;
+  $app.innerHTML = html;
+  window.scrollTo(0, 0);
+  if (name !== 'title' && name !== 'loading' && name !== 'error') pushHistory();
+}
+
+let toastTimer = null;
+function toast(msg) {
+  $toast.textContent = msg;
+  $toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $toast.hidden = true; }, 2600);
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+const fieldById = (id) => S.fields.find((f) => f.id === id);
+const diffById = (id) => S.diffs.find((d) => d.id === id);
+const charsOf = (fieldId) => CHARACTERS.filter((c) => c.field === fieldId);
+const secretChars = () => CHARACTERS.filter((c) => c.rarity === 'SECRET');
+const isOwned = (id) => !!Progress.data.owned[id];
+const isCleared = (fid, did) => !!(Progress.data.clears[fid] && Progress.data.clears[fid][did]);
+const fieldCleared = (fid) => S.diffs.some((d) => isCleared(fid, d.id));
+const playableFields = () => S.fields.filter((f) => (S.questions[f.id] || []).length > 0);
+const allFieldsCleared = () => playableFields().length > 0 && playableFields().every((f) => fieldCleared(f.id));
+const countOf = (fid, d) => (S.questions[fid] || []).filter((q) => q.difficulty === d.name).length;
+
+function charImg(c, cls, size) {
+  return `<img src="images/chars/${esc(c.id)}.svg" alt="${esc(c.name)}" width="${size}" height="${size}" class="${cls || ''}" loading="lazy"
+    onerror="this.outerHTML='<span class=&quot;img-fallback&quot;>?</span>'">`;
+}
+
+/* =================================================================
+ *  問題データの読み込み
+ * ================================================================= */
+function validQuestion(q) {
+  return q && typeof q.question === 'string' && q.question !== ''
+    && Array.isArray(q.choices) && q.choices.length === 4
+    && Number.isInteger(q.answer) && q.answer >= 0 && q.answer <= 3;
+}
+
+function normalizeData(json) {
+  if (!json || typeof json !== 'object' || !json.questions || typeof json.questions !== 'object') return null;
+  let fields = Array.isArray(json.fields) && json.fields.length ? json.fields : null;
+  if (!fields) fields = Object.keys(json.questions).map((name, i) => ({ id: 'field' + (i + 1), name, icon: '📘' }));
+  const diffs = Array.isArray(json.difficulties) && json.difficulties.length ? json.difficulties : DEFAULT_DIFFS;
+  const questions = {};
+  let total = 0;
+  fields.forEach((f) => {
+    const list = Array.isArray(json.questions[f.name]) ? json.questions[f.name] : [];
+    questions[f.id] = list.filter((q) => {
+      const ok = validQuestion(q);
+      if (!ok) console.warn('形式が正しくない問題をスキップしました', q);
+      return ok;
+    });
+    total += questions[f.id].length;
+  });
+  if (!total) return null;
+  return { fields, diffs, questions, generatedAt: json.generatedAt || null };
+}
+
+async function loadData() {
+  let json = null;
+  try {
+    const res = await fetch('./questions.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    json = await res.json();
+  } catch (e) {
+    try {
+      if ('caches' in window) {
+        const cached = await caches.match('./questions.json');
+        if (cached) json = await cached.json();
+      }
+    } catch (e2) { /* キャッシュも無い */ }
+  }
+  return normalizeData(json);
+}
+
+/* =================================================================
+ *  画面: タイトル
+ * ================================================================= */
+function contourSvg() {
+  // 等高線(地形図の山)をイメージした背景
+  const rings = [];
+  for (let i = 0; i < 9; i++) {
+    const rx = 40 + i * 34, ry = 28 + i * 24;
+    rings.push(`<path d="M${330 - rx} 70 C ${330 - rx} ${70 - ry}, ${330 + rx * 0.9} ${70 - ry * 1.1}, ${330 + rx} 72
+      S ${330 + rx * 0.4} ${70 + ry * 1.05}, ${330 - rx * 0.2} ${70 + ry} S ${330 - rx} ${70 + ry * 0.4}, ${330 - rx} 70 Z"
+      fill="none" stroke="#ffffff" stroke-opacity="${(0.32 - i * 0.025).toFixed(3)}" stroke-width="${i % 4 === 3 ? 2.6 : 1.4}"/>`);
+  }
+  return `<svg class="contours" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    ${rings.join('')}
+    <path d="M318 62 l12 -20 12 20 z" fill="#ffffff" fill-opacity=".85"/>
+  </svg>`;
+}
+
+function renderTitle() {
+  const owned = CHARACTERS.filter((c) => isOwned(c.id)).length;
+  const cleared = playableFields().filter((f) => fieldCleared(f.id)).length;
+  let updated = '';
+  if (S.generatedAt) {
+    const d = new Date(S.generatedAt);
+    if (!isNaN(d) && d.getFullYear() > 2000) {
+      updated = `問題データ: ${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 更新`;
+    } else {
+      updated = 'サンプル問題で動いています';
+    }
+  }
+  render('title', `
+    <section class="screen">
+      <div class="hero">
+        ${contourSvg()}
+        <h1>地理<br>クイズ</h1>
+        <p>中学受験の地理を、4択でおぼえよう</p>
+      </div>
+      <button class="btn primary big" data-action="fields">はじめる</button>
+      <div class="title-stats">
+        <div>クリアした分野<b>${cleared} / ${playableFields().length}</b></div>
+        <div>集めたキャラ<b>${owned} / ${CHARACTERS.length}</b></div>
+      </div>
+      <button class="btn" data-action="zukan">キャラ図鑑を見る</button>
+      ${Progress.available ? '' : '<p class="notice">この端末の設定では記録を保存できません(プライベートブラウズなど)。遊ぶことはできます。</p>'}
+      ${updated ? `<p class="notice">${esc(updated)}</p>` : ''}
+      <button class="link" data-action="reset">記録をリセット</button>
+    </section>`);
+}
+
+/* =================================================================
+ *  画面: 分野選択
+ * ================================================================= */
+function renderFields() {
+  const cards = S.fields.map((f) => {
+    const n = (S.questions[f.id] || []).length;
+    const marks = S.diffs.map((d) => {
+      const on = isCleared(f.id, d.id);
+      return `<span class="mark ${on ? 'on' : ''}" title="${esc(d.name)}${on ? ' クリア' : ''}">${on ? '✓' : ''}</span>`;
+    }).join('');
+    const chars = charsOf(f.id);
+    const own = chars.filter((c) => isOwned(c.id)).length;
+    return `
+      <button class="field" data-action="field" data-id="${esc(f.id)}" ${n ? '' : 'disabled'}>
+        <span class="f-icon" aria-hidden="true">${esc(f.icon || '📘')}</span>
+        <span class="f-name">${esc(f.name)}</span>
+        <span class="f-meta">${n ? `${n}問` : '準備中'}${chars.length ? `  キャラ ${own}/${chars.length}` : ''}</span>
+        <span class="f-row"><span class="marks" aria-label="クリアした難易度">${marks}</span></span>
+      </button>`;
+  }).join('');
+  render('fields', `
+    <section class="screen">
+      <div class="topbar">
+        <button class="back" data-action="title" aria-label="タイトルにもどる">‹</button>
+        <h2>分野をえらぶ</h2>
+      </div>
+      <p class="legend"><span class="mark on">✓</span>= クリアした難易度(左から ${S.diffs.map((d) => esc(d.name.replace(/^★+\s*/, ''))).join('・')})</p>
+      <div class="fields">${cards}</div>
+    </section>`);
+}
+
+/* =================================================================
+ *  画面: 難易度選択
+ * ================================================================= */
+function renderDiffs(fid) {
+  const f = fieldById(fid);
+  if (!f) return renderFields();
+  S.field = f;
+  const rows = S.diffs.map((d) => {
+    const n = countOf(f.id, d);
+    const best = Progress.data.best[`${f.id}:${d.id}`];
+    const cl = isCleared(f.id, d.id);
+    const meta = n ? `${n}問${best ? `  ベスト ${best}点` : ''}` : 'まだ問題がありません';
+    return `
+      <button class="diff" data-action="start" data-id="${esc(d.id)}" ${n ? '' : 'disabled'}>
+        <span class="d-name">${esc(d.name)}</span>
+        <span class="badge ${cl ? '' : 'todo'}">${cl ? 'クリア' : '未クリア'}</span>
+        <span class="d-meta">${meta}</span>
+      </button>`;
+  }).join('');
+  render('diffs', `
+    <section class="screen">
+      <div class="topbar">
+        <button class="back" data-action="fields" aria-label="分野選択にもどる">‹</button>
+        <h2>${esc(f.icon || '')} ${esc(f.name)}</h2>
+      </div>
+      <p class="lead">正答率${Math.round(CLEAR_RATE * 100)}%以上でクリア。クリアするとキャラが1体もらえます。</p>
+      <div class="diffs">${rows}</div>
+    </section>`);
+}
+
+/* =================================================================
+ *  画面: クイズ
+ * ================================================================= */
+function startQuiz(did) {
+  const f = S.field;
+  const d = diffById(did);
+  if (!f || !d) return renderFields();
+  let list = (S.questions[f.id] || []).filter((q) => q.difficulty === d.name).slice();
+  if (QUESTION_ORDER === 'random') shuffle(list);
+  if (typeof QUESTION_LIMIT === 'number' && QUESTION_LIMIT > 0) list = list.slice(0, QUESTION_LIMIT);
+  if (!list.length) { toast('この難易度の問題はまだありません'); return; }
+  S.quiz = { f, d, list, i: 0, score: 0, combo: 0, maxCombo: 0, correct: 0, answered: false };
+  renderQuestion();
+}
+
+function comboText(combo) { return combo >= 2 ? `${combo}コンボ!` : ''; }
+
+function renderQuestion() {
+  const Q = S.quiz;
+  const q = Q.list[Q.i];
+  Q.answered = false;
+  const choices = q.choices.map((c, i) => `
+    <button class="choice" data-action="answer" data-i="${i}">
+      <span class="letter" aria-hidden="true">${LETTERS[i]}</span><span>${esc(c)}</span>
+    </button>`).join('');
+  render('quiz', `
+    <section class="screen">
+      <div class="quiz-top">
+        <button class="back" data-action="quit" aria-label="クイズをやめる">✕</button>
+        <span class="pos">${Q.i + 1} / ${Q.list.length}問</span>
+        <span class="score">スコア<b id="score">${Q.score}</b></span>
+      </div>
+      <div class="bar" aria-hidden="true"><i style="width:${(Q.i / Q.list.length) * 100}%"></i></div>
+      <div class="q-info">
+        <span class="chip">${esc(Q.f.name)}</span>
+        <span class="chip">${esc(Q.d.name)}</span>
+        <span class="chip">正解 <b id="correct">${Q.correct}</b></span>
+        <span class="chip combo" id="combo">${comboText(Q.combo)}</span>
+      </div>
+      <div class="question">${esc(q.question)}</div>
+      <div class="choices">${choices}</div>
+      <div id="feedback" class="feedback" hidden></div>
+    </section>`);
+}
+
+function answer(i) {
+  const Q = S.quiz;
+  if (!Q || Q.answered) return;
+  Q.answered = true;
+  const q = Q.list[Q.i];
+  const ok = i === q.answer;
+  if (ok) {
+    Q.correct += 1;
+    Q.combo += 1;
+    Q.maxCombo = Math.max(Q.maxCombo, Q.combo);
+    Q.score += 100 + Math.min(Q.combo - 1, 10) * 10; // コンボでボーナス(最大+100)
+  } else {
+    Q.combo = 0;
+  }
+  document.querySelectorAll('.choice').forEach((b, idx) => {
+    b.disabled = true;
+    if (idx === q.answer) b.classList.add('correct');
+    else if (idx === i) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  document.getElementById('score').textContent = Q.score;
+  document.getElementById('correct').textContent = Q.correct;
+  const $combo = document.getElementById('combo');
+  $combo.textContent = comboText(Q.combo);
+  $combo.classList.remove('pop');
+  void $combo.offsetWidth;
+  if (Q.combo >= 2) $combo.classList.add('pop');
+
+  const last = Q.i + 1 >= Q.list.length;
+  const fb = document.getElementById('feedback');
+  fb.innerHTML = `
+    <p class="verdict ${ok ? 'ok' : 'ng'}">${ok ? '⭕ 正解!' : '❌ ざんねん…'}</p>
+    ${ok ? '' : `<p>正解は <b>${LETTERS[q.answer]}. ${esc(q.choices[q.answer])}</b></p>`}
+    ${q.hint ? `<p class="hint"><span>解説</span>${esc(q.hint)}</p>` : ''}
+    <button class="btn primary" data-action="next">${last ? '結果を見る' : '次の問題へ'}</button>`;
+  fb.hidden = false;
+  try { fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) { fb.scrollIntoView(); }
+}
+
+function nextQuestion() {
+  const Q = S.quiz;
+  if (!Q) return;
+  Q.i += 1;
+  if (Q.i >= Q.list.length) finishQuiz();
+  else renderQuestion();
+}
+
+/* =================================================================
+ *  キャラ抽選
+ * ================================================================= */
+function drawFrom(list) {
+  if (!list.length) return null;
+  let pool = list.filter((c) => !isOwned(c.id)); // 未所持を優先
+  if (!pool.length) pool = list;
+  const total = pool.reduce((s, c) => s + (RARITY_WEIGHT[c.rarity] || 1), 0);
+  let r = Math.random() * total;
+  for (const c of pool) {
+    r -= RARITY_WEIGHT[c.rarity] || 1;
+    if (r < 0) return c;
+  }
+  return pool[pool.length - 1];
+}
+
+function giveChar(c) {
+  const isNew = !isOwned(c.id);
+  Progress.data.owned[c.id] = (Progress.data.owned[c.id] || 0) + 1;
+  return { c, isNew };
+}
+
+/* =================================================================
+ *  画面: 結果
+ * ================================================================= */
+function finishQuiz() {
+  const Q = S.quiz;
+  const P = Progress.data;
+  const total = Q.list.length;
+  const rate = Q.correct / total;
+  const cleared = rate >= CLEAR_RATE;
+  const perfect = Q.correct === total;
+  const key = `${Q.f.id}:${Q.d.id}`;
+  const prevBest = P.best[key] || 0;
+  const newBest = Q.score > prevBest;
+  if (newBest) P.best[key] = Q.score;
+  const firstClear = cleared && !isCleared(Q.f.id, Q.d.id);
+  if (cleared) {
+    P.clears[Q.f.id] = P.clears[Q.f.id] || {};
+    P.clears[Q.f.id][Q.d.id] = true;
+  }
+  const rewards = [];
+  if (cleared) {
+    const c = drawFrom(charsOf(Q.f.id));
+    if (c) rewards.push(giveChar(c));
+  }
+  if (perfect && allFieldsCleared() && Math.random() < SECRET_RATE) {
+    const s = drawFrom(secretChars());
+    if (s) rewards.push(giveChar(s));
+  }
+  Progress.save();
+
+  let grade = 'C', msg = 'ここからが伸びしろ。解説を読んで、もう一度挑戦しよう。';
+  if (perfect) { grade = 'S'; msg = 'パーフェクト! 地理マスターだ!'; }
+  else if (rate >= 0.8) { grade = 'A'; msg = 'すばらしい! この分野はばっちり。'; }
+  else if (rate >= 0.6) { grade = 'B'; msg = 'あと少し! まちがえた問題を見直そう。'; }
+
+  const clearMsg = cleared
+    ? `<p class="clear-msg">${firstClear ? '🎉 はじめてクリア!' : '✓ クリア!'}(${esc(Q.f.name)} ${esc(Q.d.name)})</p>`
+    : `<p class="clear-msg not">正答率${Math.round(CLEAR_RATE * 100)}%以上でクリア。キャラがもらえるよ。</p>`;
+
+  const rewardHtml = rewards.map(({ c, isNew }) => {
+    const r = RARITY[c.rarity] || RARITY.N;
+    return `
+      <button class="reward" style="--rc:${r.color}" data-action="char" data-id="${esc(c.id)}">
+        ${charImg(c, '', 88)}
+        <span style="text-align:left">
+          <span class="r-title">${c.rarity === 'SECRET' ? 'シークレットキャラ出現!' : 'キャラをゲット!'}</span><br>
+          <span class="rarity" style="--rc:${r.color}">${r.label}</span>
+          <span class="r-name">${esc(c.name)}</span>${isNew ? '<span class="new">NEW</span>' : ''}
+          ${isNew ? '' : '<br><span class="r-title">(もう持っているキャラ)</span>'}
+        </span>
+      </button>`;
+  }).join('');
+
+  render('result', `
+    <section class="screen">
+      <div class="result-head">
+        <div class="grade ${grade}" aria-label="評価 ${grade}">${grade}</div>
+        <p class="count">${total}問中 ${Q.correct}問正解</p>
+        <p class="msg">${esc(msg)}</p>
+      </div>
+      <div class="stats">
+        <div>スコア<b>${Q.score}</b></div>
+        <div>ベスト<b>${Math.max(prevBest, Q.score)}</b>${newBest ? '<span class="new">更新</span>' : ''}</div>
+        <div>最大コンボ<b>${Q.maxCombo}</b></div>
+      </div>
+      ${clearMsg}
+      ${rewardHtml}
+      <button class="btn primary" data-action="retry">もう一度</button>
+      <button class="btn" data-action="field" data-id="${esc(Q.f.id)}">難易度をえらぶ</button>
+      <button class="btn" data-action="fields">分野をえらぶ</button>
+      <button class="btn" data-action="zukan">キャラ図鑑</button>
+    </section>`);
+  if (rewards.some((r) => r.isNew)) toast('図鑑に新しいキャラが登録されました');
+}
+
+/* =================================================================
+ *  画面: 図鑑
+ * ================================================================= */
+function renderZukan() {
+  const cell = (c) => {
+    const own = isOwned(c.id);
+    const r = RARITY[c.rarity] || RARITY.N;
+    return `
+      <button class="cell ${own ? '' : 'locked'}" style="--rc:${r.color}" data-action="char" data-id="${esc(c.id)}">
+        ${charImg(c, '', 72)}
+        <span class="c-name">${own ? esc(c.name) : '???'}</span>
+        <span class="rarity" style="--rc:${r.color}">${r.label}</span>
+      </button>`;
+  };
+  const groups = S.fields.map((f) => {
+    const list = charsOf(f.id);
+    if (!list.length) return '';
+    const own = list.filter((c) => isOwned(c.id)).length;
+    return `<div class="group"><h3>${esc(f.icon || '')} ${esc(f.name)} <small>${own}/${list.length}</small></h3>
+      <div class="cells">${list.map(cell).join('')}</div></div>`;
+  }).join('');
+  const secrets = secretChars();
+  const secOwn = secrets.filter((c) => isOwned(c.id)).length;
+  const total = CHARACTERS.filter((c) => isOwned(c.id)).length;
+  render('zukan', `
+    <section class="screen">
+      <div class="topbar">
+        <button class="back" data-action="title" aria-label="タイトルにもどる">‹</button>
+        <h2>キャラ図鑑</h2>
+      </div>
+      <p class="zukan-total">集めたキャラ ${total} / ${CHARACTERS.length}</p>
+      ${groups}
+      <div class="group"><h3>✨ シークレット <small>${secOwn}/${secrets.length}</small></h3>
+        <div class="cells">${secrets.map(cell).join('')}</div></div>
+    </section>`);
+}
+
+function openChar(id) {
+  const c = CHARACTERS.find((x) => x.id === id);
+  if (!c) return;
+  const own = isOwned(c.id);
+  const r = RARITY[c.rarity] || RARITY.N;
+  const f = fieldById(c.field);
+  const where = c.rarity === 'SECRET' ? 'シークレット' : (f ? f.name : '');
+  const how = c.rarity === 'SECRET'
+    ? 'すべての分野をクリアしたあと、満点を取るとまれに出会えます。'
+    : `「${where}」をクリアすると出会えるかも。`;
+  $modal.innerHTML = `
+    <div class="modal-card" style="--rc:${r.color}">
+      ${charImg(c, own ? '' : 'locked', 180)}
+      <p><span class="rarity" style="--rc:${r.color}">${r.label}</span> ${esc(where)}</p>
+      <h3>${own ? esc(c.name) : '???'}</h3>
+      <p class="desc">${own ? esc(c.desc) : esc(how)}</p>
+      ${own && Progress.data.owned[c.id] > 1 ? `<p class="notice">${Progress.data.owned[c.id]}回ゲット</p>` : ''}
+      <button class="btn primary" data-action="close-modal">とじる</button>
+    </div>`;
+  $modal.hidden = false;
+  const btn = $modal.querySelector('[data-action="close-modal"]');
+  if (btn) btn.focus();
+}
+function closeModal() { $modal.hidden = true; $modal.innerHTML = ''; }
+
+/* =================================================================
+ *  画面: エラー
+ * ================================================================= */
+function renderError() {
+  render('error', `
+    <section class="screen" style="padding-top:12vh">
+      <div class="error-box">
+        <h2>問題データが見つかりません</h2>
+        <p>questions.json を読み込めませんでした。次を確認してください。</p>
+        <p>・インターネットにつながっているか(はじめて開くときは通信が必要です)<br>
+           ・GitHub の Actions で「sync-notion」が成功しているか<br>
+           ・Notion の問題のステータスが「完成」になっているか</p>
+        <button class="btn primary" data-action="reload">もう一度読み込む</button>
+      </div>
+    </section>`);
+}
+
+/* =================================================================
+ *  戻るボタン(Android の戻る操作)への対応
+ * ================================================================= */
+function pushHistory() {
+  try { if (!(history.state && history.state.geoQuiz)) history.pushState({ geoQuiz: true }, ''); } catch (e) { /* 無視 */ }
+}
+window.addEventListener('popstate', () => {
+  if (!$modal.hidden) { closeModal(); pushHistory(); return; }
+  switch (screen) {
+    case 'fields': case 'zukan': renderTitle(); break;
+    case 'diffs': renderFields(); break;
+    case 'result': renderDiffs(S.quiz ? S.quiz.f.id : ''); break;
+    case 'quiz':
+      if (confirm('クイズをやめますか?(このプレイの記録は残りません)')) renderDiffs(S.quiz.f.id);
+      else pushHistory();
+      break;
+    default: break;
+  }
+});
+
+/* =================================================================
+ *  タップ操作
+ * ================================================================= */
+document.addEventListener('click', (e) => {
+  if (e.target === $modal) { closeModal(); return; }
+  const el = e.target.closest('[data-action]');
+  if (!el || el.disabled) return;
+  const id = el.dataset.id;
+  switch (el.dataset.action) {
+    case 'title': renderTitle(); break;
+    case 'fields': renderFields(); break;
+    case 'field': renderDiffs(id); break;
+    case 'start': startQuiz(id); break;
+    case 'answer': answer(Number(el.dataset.i)); break;
+    case 'next': nextQuestion(); break;
+    case 'retry': if (S.quiz) startQuiz(S.quiz.d.id); break;
+    case 'quit':
+      if (confirm('クイズをやめますか?(このプレイの記録は残りません)')) renderDiffs(S.quiz.f.id);
+      break;
+    case 'zukan': renderZukan(); break;
+    case 'char': openChar(id); break;
+    case 'close-modal': closeModal(); break;
+    case 'reload': init(); break;
+    case 'reset':
+      if (confirm('クリア状況・ベストスコア・図鑑をすべて消します。よろしいですか?')
+        && confirm('本当に消しますか?元にはもどせません。')) {
+        Progress.reset();
+        renderTitle();
+        toast('記録をリセットしました');
+      }
+      break;
+    default: break;
+  }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$modal.hidden) closeModal();
+});
+
+/* =================================================================
+ *  起動
+ * ================================================================= */
+async function init() {
+  render('loading', '<p class="notice" style="padding-top:40vh">読み込み中…</p>');
+  const data = await loadData();
+  if (!data) { renderError(); return; }
+  Object.assign(S, data);
+  renderTitle();
+}
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('Service Worker の登録に失敗しました', e));
+  });
+}
+init();
+</script>
+</body>
+</html>

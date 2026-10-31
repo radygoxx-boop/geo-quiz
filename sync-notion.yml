@@ -1,0 +1,56 @@
+# Notion の問題DB → questions.json を同期するワークフロー
+# ・毎日 JST 04:00 に自動実行(cron は UTC なので 19:00)
+# ・Actions タブの「Run workflow」で手動実行もできる
+name: sync-notion
+
+on:
+  schedule:
+    - cron: '0 19 * * *'   # 毎日 19:00 UTC = 翌日 04:00 JST
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '変更がなくても全件取り込み直す'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-notion
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Node.js 20 を用意
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 依存パッケージをインストール
+        run: npm install --no-audit --no-fund
+
+      - name: Notion から問題を取得
+        run: node scripts/fetch-notion.js
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          FORCE_SYNC: ${{ inputs.force }}
+
+      - name: 変更があればコミット
+        run: |
+          if git diff --quiet -- questions.json; then
+            echo "NO_CHANGE: questions.json に変更がないのでコミットしません"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add questions.json
+          git commit -m "Notionから問題を同期 ($(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M') JST)"
+          git push

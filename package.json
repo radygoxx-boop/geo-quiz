@@ -1,0 +1,15 @@
+{
+  "name": "geo-quiz-pwa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "中学受験向け 地理クイズPWA(Notion → GitHub Actions → GitHub Pages)",
+  "scripts": {
+    "sync": "node scripts/fetch-notion.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@notionhq/client": "2.2.15"
+  }
+}

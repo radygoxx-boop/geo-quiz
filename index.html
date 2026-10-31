@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="中学受験の地理を4択クイズで楽しく覚えるアプリ">
-<meta name="theme-color" content="#1d5c84">
+<meta name="theme-color" content="#0b1530">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,280 +12,523 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="images/icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
-<title>地理クイズ</title>
+<title>地理クイズ GEO QUEST</title>
 <!--
   ★ 出題数・出題順を変えたいときは、下の <script> の先頭にある
     「出題設定」の囲み枠(QUESTION_LIMIT / QUESTION_ORDER)を書きかえてください。
 -->
 <style>
 :root {
-  --sea: #1d5c84;
-  --sea-deep: #123f5c;
-  --sea-text: #1d5c84;
-  --land: #4f8f3a;
-  --land-soft: #dcebd2;
-  --contour: #b0683a;
-  --paper: #e9f0ec;
-  --card: #fbfdfb;
-  --ink: #1f2b2f;
-  --muted: #5b6a6f;
-  --line: #c6d4ce;
-  --ok: #23804e;
-  --ok-bg: #dff2e6;
-  --ng: #c2412b;
-  --ng-bg: #fbe4de;
-  --r-secret: #7d3c98;
-  --r-sr: #c18c0c;
-  --r-r: #2e78c7;
-  --r-n: #7b858c;
-  --radius: 16px;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --sea-text: #8cc6ea;
-    --land-soft: #1f3a2b;
-    --contour: #d38a5a;
-    --paper: #0f1c20;
-    --card: #182a30;
-    --ink: #e5eeeb;
-    --muted: #9db1b2;
-    --line: #2d454c;
-    --ok: #5fd08f;
-    --ok-bg: #173a29;
-    --ng: #ff8a73;
-    --ng-bg: #40201a;
-    color-scheme: dark;
-  }
+  --bg0: #060b1d;
+  --bg1: #0b1530;
+  --text: #eef3ff;
+  --muted: #93a4cc;
+  --edge: rgba(150, 190, 255, .32);
+  --panel-top: rgba(40, 66, 140, .92);
+  --panel-bottom: rgba(14, 26, 62, .94);
+  --gold-1: #fffbe0;
+  --gold-2: #ffe27a;
+  --gold-3: #ffb21e;
+  --gold-4: #b8700f;
+  --cyan: #3fd8ff;
+  --ok: #33e08a;
+  --ng: #ff4d6a;
+  --r-n: #b9c3d6;
+  --r-r: #4aa8ff;
+  --r-sr: #ffc93c;
+  --r-secret: #d27bff;
+  --frame-n: linear-gradient(135deg, #f2f5fa, #8892a6 30%, #e8edf5 55%, #66708a);
+  --frame-r: linear-gradient(135deg, #cfeaff, #2f7fe0 35%, #bfe3ff 60%, #1a4fa0);
+  --frame-sr: linear-gradient(135deg, #fffbe0, #ffc93c 25%, #9c600e 50%, #ffe27a 72%, #c8801a);
+  --frame-secret: linear-gradient(90deg, #ff5fb0, #ffc93c, #3fd37a, #3fa9ff, #c56bff, #ff5fb0, #ffc93c, #3fd37a);
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; }
+html, body { margin: 0; min-height: 100%; }
 body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", "BIZ UDPGothic", "Noto Sans JP", "Yu Gothic", "Meiryo", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -8%, #2b4aa6 0%, transparent 62%),
+    radial-gradient(ellipse 80% 40% at 50% 112%, #3d1d78 0%, transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg0));
+  background-attachment: fixed;
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "BIZ UDPGothic", "Noto Sans JP", "Yu Gothic", "Meiryo", sans-serif;
   font-size: 16px;
   line-height: 1.6;
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
   padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  overflow-x: hidden;
 }
+/* 経線・緯線のグリッドと、ゆっくり流れる光の粒 */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(120, 170, 255, .07) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(90deg, rgba(120, 170, 255, .07) 0 1px, transparent 1px 44px);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 80%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 80%);
+}
+body::after {
+  content: ""; position: fixed; inset: -50% 0 0; z-index: -1; pointer-events: none;
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, rgba(255, 230, 150, .8), transparent),
+    radial-gradient(1.5px 1.5px at 70% 20%, rgba(140, 220, 255, .8), transparent),
+    radial-gradient(2px 2px at 85% 65%, rgba(255, 255, 255, .6), transparent),
+    radial-gradient(1.5px 1.5px at 35% 80%, rgba(140, 220, 255, .7), transparent),
+    radial-gradient(1px 1px at 55% 50%, rgba(255, 255, 255, .7), transparent);
+  background-size: 320px 420px;
+  animation: drift 40s linear infinite;
+  opacity: .7;
+}
+@keyframes drift { to { transform: translateY(420px); } }
+
 button { font: inherit; color: inherit; cursor: pointer; }
 button:disabled { cursor: default; }
-:focus-visible { outline: 3px solid #f2b705; outline-offset: 2px; }
-#app { max-width: 520px; margin: 0 auto; padding: 16px 16px 32px; min-height: 100%; }
-.screen { display: flex; flex-direction: column; gap: 16px; }
-h1, h2, h3 { margin: 0; line-height: 1.3; }
-p { margin: 0; }
+:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+#app { max-width: 520px; margin: 0 auto; padding: 14px 14px 36px; min-height: 100vh; }
+.screen { display: flex; flex-direction: column; gap: 14px; animation: enter .35s ease-out; }
+@keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { line-height: 1.25; }
+.num { font-variant-numeric: tabular-nums; }
 
-/* ---------- ボタン ---------- */
+/* ---------- 共通パーツ ---------- */
+.panel {
+  background: linear-gradient(180deg, var(--panel-top), var(--panel-bottom));
+  border: 1.5px solid var(--edge);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 6px 18px rgba(0, 0, 0, .45);
+}
+.gold-frame {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(180deg, var(--panel-top), var(--panel-bottom)) padding-box,
+    var(--frame-sr) border-box;
+}
+.gold-text {
+  background: linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 38%, var(--gold-3) 62%, var(--gold-4) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 #4a2200) drop-shadow(0 0 10px rgba(255, 190, 60, .45));
+}
+.label-en {
+  font-size: .72rem; font-weight: 900; letter-spacing: .28em; color: var(--cyan);
+  text-shadow: 0 0 8px rgba(63, 216, 255, .7);
+}
+
 .btn {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; min-height: 56px; padding: 10px 18px;
-  border: 2px solid var(--line); border-radius: 14px;
-  background: var(--card); font-size: 1.05rem; font-weight: 700;
-}
-.btn.primary { background: var(--sea); border-color: var(--sea); color: #fff; }
-.btn.big { min-height: 64px; font-size: 1.25rem; }
-.btn:active:not(:disabled) { transform: translateY(1px); }
-.btn small { font-weight: 400; color: inherit; opacity: .8; }
-.link { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 8px; font-size: .9rem; }
-
-.topbar { display: flex; align-items: center; gap: 8px; min-height: 48px; }
-.topbar h2 { font-size: 1.3rem; }
-.back {
-  flex: none; width: 48px; height: 48px; border-radius: 12px;
-  border: 2px solid var(--line); background: var(--card); font-size: 1.3rem; font-weight: 700;
-}
-.lead { color: var(--muted); font-size: .95rem; }
-
-/* ---------- タイトル(等高線の地図) ---------- */
-.hero {
   position: relative; overflow: hidden;
-  border-radius: 24px; background: var(--sea);
-  color: #fff; padding: 56px 24px 28px; min-height: 300px;
-  display: flex; flex-direction: column; justify-content: flex-end;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; min-height: 58px; padding: 10px 18px;
+  border: 2px solid rgba(160, 195, 255, .45); border-radius: 14px;
+  background: linear-gradient(180deg, #5878d6 0%, #2d4a9e 49%, #233d86 51%, #1a2f6a 100%);
+  box-shadow: 0 4px 0 #0a1530, 0 8px 18px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .35);
+  font-size: 1.08rem; font-weight: 900; letter-spacing: .04em; color: #fff;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .45);
+  transition: transform .08s, box-shadow .08s;
 }
-.hero svg.contours { position: absolute; inset: 0; width: 100%; height: 100%; }
-.hero h1 {
-  position: relative; font-size: clamp(2.8rem, 15vw, 4.2rem); font-weight: 900;
-  letter-spacing: .06em; line-height: 1.05;
-  text-shadow: 0 3px 0 var(--sea-deep);
+.btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #0a1530, 0 4px 10px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .35); }
+.btn.primary {
+  border-color: #fff1b0;
+  background: linear-gradient(180deg, #fff09a 0%, #ffbf2e 46%, #ff9a00 54%, #e86400 100%);
+  box-shadow: 0 4px 0 #7a3200, 0 0 22px rgba(255, 170, 40, .45), 0 8px 18px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .7);
+  text-shadow: 0 0 2px #7a3000, 0 2px 0 #7a3000, 1px 0 0 #7a3000, -1px 0 0 #7a3000;
 }
-.hero p { position: relative; margin-top: 10px; font-size: 1.05rem; opacity: .95; }
-.title-stats { display: flex; gap: 10px; }
-.title-stats div {
-  flex: 1; background: var(--card); border: 2px solid var(--line); border-radius: 14px;
-  padding: 10px 12px; font-size: .85rem; color: var(--muted);
+.btn.primary:active:not(:disabled) { box-shadow: 0 1px 0 #7a3200, 0 0 18px rgba(255, 170, 40, .4), inset 0 1px 0 rgba(255, 255, 255, .7); }
+.btn.primary::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .65), transparent);
+  transform: skewX(-20deg); animation: shine 3.2s ease-in-out infinite;
 }
-.title-stats b { display: block; font-size: 1.35rem; color: var(--ink); }
-.notice { font-size: .85rem; color: var(--muted); text-align: center; }
+@keyframes shine { 0%, 60% { left: -60%; } 100% { left: 130%; } }
+.btn.big { min-height: 72px; font-size: 1.5rem; letter-spacing: .12em; }
+.btn.pulse { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+.btn small { font-weight: 700; opacity: .85; font-size: .8rem; }
+.link { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 8px; font-size: .85rem; }
 
-/* ---------- 分野選択 ---------- */
-.legend { font-size: .85rem; color: var(--muted); }
-.legend .mark { width: 18px; height: 18px; vertical-align: -3px; margin-right: 4px; }
-.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.field {
+.topbar { display: flex; align-items: center; gap: 12px; min-height: 52px; }
+.back {
+  flex: none; width: 46px; height: 46px; border-radius: 50%;
+  border: 2px solid rgba(160, 195, 255, .5);
+  background: radial-gradient(circle at 50% 30%, #4f6fc9, #1a2f6a 75%);
+  box-shadow: 0 3px 0 #0a1530, inset 0 1px 0 rgba(255, 255, 255, .35);
+  font-size: 1.5rem; font-weight: 900; line-height: 1; color: #fff;
+}
+.back:active { transform: translateY(2px); box-shadow: 0 1px 0 #0a1530; }
+.topbar .ttl { display: flex; flex-direction: column; }
+.topbar h2 { font-size: 1.45rem; font-weight: 900; }
+.lead { color: var(--muted); font-size: .88rem; }
+
+/* ---------- タイトル ---------- */
+.title-wrap { position: relative; text-align: center; padding: 18px 0 6px; }
+.globe { width: min(300px, 78vw); height: auto; display: block; margin: 0 auto -86px; opacity: .95; filter: drop-shadow(0 0 22px rgba(63, 216, 255, .45)); }
+.logo-en { position: relative; display: inline-block; padding: 2px 14px; }
+.logo-en::before, .logo-en::after { content: ""; position: absolute; top: 50%; width: 34px; height: 1.5px; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.logo-en::before { right: 100%; } .logo-en::after { left: 100%; }
+.logo {
+  position: relative; font-size: clamp(3.2rem, 17vw, 4.8rem); font-weight: 900; letter-spacing: .04em; line-height: 1.02;
+  margin-top: 4px;
+}
+.logo-sub { margin-top: 8px; font-weight: 800; font-size: .95rem; color: #d7e4ff; text-shadow: 0 2px 6px rgba(0, 0, 0, .6); }
+.hud-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hud { padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+.hud .ico { font-size: 1.6rem; filter: drop-shadow(0 0 6px rgba(255, 200, 80, .6)); }
+.hud .k { font-size: .72rem; color: var(--muted); font-weight: 800; display: block; }
+.hud .v { font-size: 1.35rem; font-weight: 900; }
+.hud .v small { font-size: .85rem; color: var(--muted); }
+.notice { font-size: .8rem; color: var(--muted); text-align: center; }
+
+/* ---------- エリア選択 ---------- */
+.areas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.area {
+  position: relative; overflow: hidden;
   display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
-  text-align: left; padding: 14px; min-height: 128px;
-  background: var(--card); border: 2px solid var(--line); border-radius: var(--radius);
+  padding: 0 12px 12px; min-height: 168px; text-align: left;
+  border: 2px solid color-mix(in srgb, var(--fc) 70%, #ffffff);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse 120% 70% at 50% 0%, color-mix(in srgb, var(--fc) 55%, transparent), transparent 70%),
+    linear-gradient(180deg, #1c2f66, #0d1838);
+  box-shadow: 0 4px 0 #050b1c, 0 0 18px color-mix(in srgb, var(--fc) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, .25);
 }
-.field:disabled { opacity: .5; }
-.f-icon { font-size: 1.8rem; line-height: 1; }
-.f-name { font-size: 1.1rem; font-weight: 800; }
-.f-meta { font-size: .85rem; color: var(--muted); }
-.f-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: auto; }
-.marks { display: inline-flex; gap: 4px; }
-.mark {
-  width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--line);
-  display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 900;
+.area:active:not(:disabled) { transform: translateY(2px); }
+.area:disabled { filter: grayscale(1) brightness(.6); }
+.area .badge-ico {
+  margin-top: 12px; width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
+  background: radial-gradient(circle at 40% 30%, color-mix(in srgb, var(--fc) 80%, #ffffff), color-mix(in srgb, var(--fc) 60%, #000000));
+  border: 2px solid rgba(255, 255, 255, .7);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--fc) 70%, transparent);
 }
-.mark.on { background: var(--land); border-color: var(--land); color: #fff; }
-.f-own { font-size: .8rem; color: var(--muted); }
+.area .a-name { font-size: 1.08rem; font-weight: 900; text-shadow: 0 2px 0 rgba(0, 0, 0, .5); }
+.area .a-meta { font-size: .76rem; color: #c9d6f5; font-weight: 700; }
+.stars { display: inline-flex; gap: 2px; font-size: 1.05rem; line-height: 1; }
+.stars .s { color: rgba(255, 255, 255, .18); -webkit-text-stroke: 1px rgba(255, 255, 255, .25); }
+.stars .s.on { color: var(--gold-2); -webkit-text-stroke: 1px #9c5a00; filter: drop-shadow(0 0 4px rgba(255, 200, 60, .8)); }
+.mini-bar { width: 100%; height: 6px; border-radius: 999px; background: rgba(0, 0, 0, .45); overflow: hidden; margin-top: 2px; }
+.mini-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), #9cf0ff); }
+.area .soon { position: absolute; right: 8px; top: 10px; font-size: .62rem; font-weight: 900; letter-spacing: .1em; padding: 2px 6px; border-radius: 4px; background: #000a; }
+.area .comp { position: absolute; right: -28px; top: 14px; transform: rotate(35deg); width: 110px; text-align: center; font-size: .6rem; font-weight: 900; letter-spacing: .1em; background: linear-gradient(90deg, #ffe27a, #ffb21e); color: #5a2a00; padding: 2px 0; }
 
-/* ---------- 難易度選択 ---------- */
-.diffs { display: flex; flex-direction: column; gap: 12px; }
+/* ---------- 難易度 ---------- */
+.diffs { display: flex; flex-direction: column; gap: 14px; }
 .diff {
-  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 12px;
-  text-align: left; padding: 16px 18px; min-height: 84px;
-  background: var(--card); border: 2px solid var(--line); border-radius: var(--radius);
+  position: relative; overflow: hidden;
+  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 14px;
+  padding: 14px 16px; min-height: 96px; text-align: left;
+  border: 2px solid color-mix(in srgb, var(--dc) 75%, #ffffff); border-radius: 16px;
+  background:
+    linear-gradient(100deg, color-mix(in srgb, var(--dc) 45%, transparent) 0%, transparent 55%),
+    linear-gradient(180deg, #1c2f66, #0d1838);
+  box-shadow: 0 4px 0 #050b1c, 0 0 16px color-mix(in srgb, var(--dc) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, .25);
 }
-.diff:disabled { opacity: .5; }
-.diff .d-name { font-size: 1.25rem; font-weight: 800; }
-.diff .d-meta { grid-column: 1; font-size: .88rem; color: var(--muted); }
-.diff .badge { grid-row: 1 / span 2; grid-column: 2; }
-.badge {
-  display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: .8rem; font-weight: 800;
-  background: var(--land); color: #fff;
+.diff:active:not(:disabled) { transform: translateY(2px); }
+.diff:disabled { filter: grayscale(1) brightness(.6); }
+.diff .tier {
+  grid-row: 1 / span 2; width: 74px; height: 74px; border-radius: 14px; transform: rotate(45deg) scale(.78);
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--dc) 70%, #ffffff), color-mix(in srgb, var(--dc) 70%, #000000));
+  border: 2px solid rgba(255, 255, 255, .8); box-shadow: 0 0 16px color-mix(in srgb, var(--dc) 70%, transparent);
 }
-.badge.todo { background: transparent; color: var(--muted); border: 2px dashed var(--line); }
+.diff .tier span { transform: rotate(-45deg); font-weight: 900; font-size: .78rem; letter-spacing: .04em; text-shadow: 0 1px 0 #0008; }
+.diff .d-name { font-size: 1.3rem; font-weight: 900; text-shadow: 0 2px 0 rgba(0, 0, 0, .5); }
+.diff .d-meta { font-size: .82rem; color: #c9d6f5; font-weight: 700; }
+.stamp {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%) rotate(-14deg);
+  padding: 4px 10px; border: 3px solid var(--gold-2); border-radius: 8px;
+  color: var(--gold-2); font-weight: 900; letter-spacing: .12em; font-size: .9rem;
+  text-shadow: 0 0 8px rgba(255, 200, 60, .7); box-shadow: 0 0 10px rgba(255, 200, 60, .4), inset 0 0 8px rgba(255, 200, 60, .3);
+}
 
 /* ---------- クイズ ---------- */
-.quiz-top { display: flex; align-items: center; gap: 10px; }
-.quiz-top .pos { font-weight: 800; font-size: 1.1rem; }
-.quiz-top .score { margin-left: auto; text-align: right; font-size: .8rem; color: var(--muted); line-height: 1.2; }
-.quiz-top .score b { display: block; font-size: 1.4rem; color: var(--ink); }
-.bar { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; }
-.bar i { display: block; height: 100%; background: var(--land); border-radius: 999px; transition: width .3s; }
-.q-info { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .85rem; }
-.chip { padding: 3px 10px; border-radius: 999px; background: var(--card); border: 1.5px solid var(--line); color: var(--muted); }
-.chip.combo { background: #f2b705; border-color: #f2b705; color: #3a2a00; font-weight: 800; }
-.chip.combo:empty { display: none; }
-.chip.pop { animation: pop .35s ease-out; }
-@keyframes pop { 0% { transform: scale(1.35); } 100% { transform: scale(1); } }
-.question {
-  background: var(--card); border: 2px solid var(--line); border-radius: var(--radius);
-  padding: 18px; font-size: 1.15rem; font-weight: 700; line-height: 1.7;
+.quiz-hud { display: flex; align-items: center; gap: 10px; }
+.quiz-hud .stage { flex: 1; min-width: 0; }
+.quiz-hud .stage b { display: block; font-size: 1rem; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.quiz-hud .stage span { font-size: .74rem; color: var(--muted); font-weight: 800; }
+.score-box { position: relative; text-align: right; padding: 6px 12px; min-width: 112px; }
+.score-box .k { font-size: .62rem; letter-spacing: .2em; color: var(--cyan); font-weight: 900; display: block; line-height: 1; }
+.score-box .v { font-size: 1.5rem; font-weight: 900; line-height: 1.1; }
+.float-pt {
+  position: absolute; right: calc(100% + 6px); top: 12px; font-size: 1.2rem; font-weight: 900; color: var(--gold-2);
+  text-shadow: 0 2px 0 #5a2a00, 0 0 8px rgba(255, 200, 60, .8);
+  animation: floatUp 1s ease-out forwards; pointer-events: none;
 }
+@keyframes floatUp { from { opacity: 0; transform: translateY(8px); } 20% { opacity: 1; } to { opacity: 0; transform: translateY(-22px); } }
+.segs { display: flex; gap: 3px; }
+.segs i {
+  flex: 1; height: 10px; border-radius: 3px; background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .15);
+}
+.segs i.ok { background: linear-gradient(180deg, #8dffc0, var(--ok)); border-color: #b5ffd6; box-shadow: 0 0 6px rgba(51, 224, 138, .6); }
+.segs i.ng { background: linear-gradient(180deg, #ff9aab, var(--ng)); border-color: #ffc0cb; }
+.segs i.cur { background: rgba(63, 216, 255, .35); border-color: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: blink 1s ease-in-out infinite; }
+@keyframes blink { 50% { opacity: .5; } }
+.info-row { display: flex; align-items: center; justify-content: space-between; min-height: 30px; }
+.info-row .pos { font-weight: 900; font-size: .95rem; color: #c9d6f5; }
+.combo {
+  font-weight: 900; font-style: italic; font-size: 1.25rem; letter-spacing: .02em;
+  background: linear-gradient(180deg, #fff6a8, #ffb21e 50%, #ff5a1f);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 #5a1a00) drop-shadow(0 0 8px rgba(255, 120, 30, .8));
+}
+.combo:empty { display: none; }
+.combo.pop { animation: comboPop .45s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes comboPop { from { transform: scale(1.8) rotate(-6deg); } to { transform: scale(1) rotate(0); } }
+.q-panel { position: relative; padding: 26px 16px 18px; }
+.q-tag {
+  position: absolute; left: -2px; top: -12px; padding: 2px 14px 2px 10px;
+  font-weight: 900; font-style: italic; font-size: 1rem; color: #fff;
+  background: linear-gradient(180deg, #ff6b8a, #d61f4a); border: 2px solid #ffd0da;
+  clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%);
+  text-shadow: 0 1px 0 #6a0018;
+}
+.q-text { font-size: 1.14rem; font-weight: 800; line-height: 1.7; }
 .choices { display: flex; flex-direction: column; gap: 10px; }
 .choice {
-  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px;
-  padding: 10px 14px; text-align: left; font-size: 1.05rem; font-weight: 700;
-  background: var(--card); border: 2px solid var(--line); border-radius: 14px;
+  position: relative; display: flex; align-items: center; gap: 12px; width: 100%; min-height: 62px;
+  padding: 10px 14px 10px 10px; text-align: left; font-size: 1.04rem; font-weight: 800; color: #fff;
+  border: 2px solid rgba(160, 195, 255, .45); border-radius: 14px;
+  background: linear-gradient(180deg, #2f4c9e 0%, #1c3170 100%);
+  box-shadow: 0 4px 0 #0a1530, inset 0 1px 0 rgba(255, 255, 255, .25);
+  transition: transform .08s;
 }
+.choice:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #0a1530; }
 .letter {
-  flex: none; width: 34px; height: 34px; border-radius: 50%;
-  display: inline-flex; align-items: center; justify-content: center;
-  border: 2.5px solid var(--sea-text); color: var(--sea-text); font-weight: 900;
+  flex: none; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 1.05rem; color: #10204a;
+  background: linear-gradient(180deg, #ffffff, #b9d4ff); border-radius: 10px; transform: rotate(45deg) scale(.82);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .5);
 }
-.choice.correct { background: var(--ok-bg); border-color: var(--ok); }
-.choice.correct .letter { background: var(--ok); border-color: var(--ok); color: #fff; }
-.choice.wrong { background: var(--ng-bg); border-color: var(--ng); }
-.choice.wrong .letter { background: var(--ng); border-color: var(--ng); color: #fff; }
-.choice.dim { opacity: .55; }
-.feedback {
-  display: flex; flex-direction: column; gap: 12px;
-  background: var(--card); border: 2px solid var(--line); border-radius: var(--radius); padding: 16px;
-}
+.letter span { transform: rotate(-45deg); }
+.choice.correct { border-color: #b5ffd6; background: linear-gradient(180deg, #1fa968, #0e6b40); box-shadow: 0 4px 0 #063a22, 0 0 20px rgba(51, 224, 138, .7); }
+.choice.correct .letter { background: linear-gradient(180deg, #ffffff, #b5ffd6); }
+.choice.correct::after { content: "◯"; position: absolute; right: 14px; font-size: 1.5rem; font-weight: 900; color: #fff; text-shadow: 0 0 8px #33e08a; }
+.choice.wrong { border-color: #ffc0cb; background: linear-gradient(180deg, #c7304f, #7a1328); box-shadow: 0 4px 0 #3d0812; animation: shake .4s; }
+.choice.wrong::after { content: "✕"; position: absolute; right: 14px; font-size: 1.4rem; font-weight: 900; color: #fff; }
+.choice.dim { opacity: .4; }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.feedback { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
 .feedback[hidden] { display: none; }
-.verdict { font-size: 1.4rem; font-weight: 900; }
-.verdict.ok { color: var(--ok); }
-.verdict.ng { color: var(--ng); }
-.hint { border-left: 4px solid var(--contour); padding: 2px 0 2px 12px; }
-.hint span { display: block; font-size: .8rem; font-weight: 800; color: var(--contour); }
+.verdict { font-size: 1.3rem; font-weight: 900; }
+.verdict.ok { color: var(--ok); text-shadow: 0 0 10px rgba(51, 224, 138, .6); }
+.verdict.ng { color: #ff8da0; }
+.answer-line { font-weight: 700; }
+.hint { border-left: 4px solid var(--gold-3); padding: 2px 0 2px 12px; color: #dfe8ff; }
+.hint span { display: block; font-size: .72rem; font-weight: 900; letter-spacing: .2em; color: var(--gold-2); }
 
-/* ---------- 結果 ---------- */
-.result-head { text-align: center; padding: 8px 0; }
-.grade {
-  width: 128px; height: 128px; margin: 0 auto 8px; border-radius: 50%;
+/* 判定演出(画面中央) */
+.judge { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.judge[hidden] { display: none; }
+.judge .j {
+  font-size: clamp(3.2rem, 18vw, 5rem); font-weight: 900; font-style: italic; letter-spacing: .02em;
+  animation: judge 1s cubic-bezier(.2, 1.4, .4, 1) forwards;
+}
+.judge .j.ok {
+  background: linear-gradient(180deg, #fffbe0, #ffe27a 40%, #ffb21e 60%, #e86400);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 4px 0 #5a2a00) drop-shadow(0 0 20px rgba(255, 190, 60, .8));
+}
+.judge .j.ng {
+  background: linear-gradient(180deg, #e6efff, #8fb0ff 50%, #4a63b8);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 4px 0 #0a1530) drop-shadow(0 0 14px rgba(120, 160, 255, .6));
+}
+@keyframes judge {
+  0% { opacity: 0; transform: scale(2.4); }
+  25% { opacity: 1; transform: scale(1); }
+  75% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 0; transform: scale(1.1) translateY(-14px); }
+}
+.flash { position: fixed; inset: 0; z-index: 39; pointer-events: none; animation: flash .45s ease-out forwards; }
+.flash.ok { background: radial-gradient(circle, rgba(255, 220, 120, .35), transparent 70%); }
+.flash.ng { background: radial-gradient(circle, transparent 40%, rgba(255, 50, 80, .35)); }
+@keyframes flash { from { opacity: 1; } to { opacity: 0; } }
+
+/* ---------- リザルト ---------- */
+.result-title { text-align: center; padding-top: 6px; }
+.result-title h2 { font-size: 2.2rem; font-weight: 900; font-style: italic; letter-spacing: .08em; }
+.rank-wrap { position: relative; width: 190px; height: 190px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+.rank-wrap::before {
+  content: ""; position: absolute; inset: -10px; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--rk) 55%, transparent) 0 8deg, transparent 8deg 22deg);
+  -webkit-mask-image: radial-gradient(circle, #000 30%, transparent 70%);
+  mask-image: radial-gradient(circle, #000 30%, transparent 70%);
+  animation: spin 14s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.rank {
+  position: relative; width: 130px; height: 130px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 4.2rem; font-weight: 900; color: #fff; background: var(--sea);
-  box-shadow: inset 0 0 0 6px rgba(255,255,255,.35);
+  border: 4px solid transparent;
+  background: radial-gradient(circle at 50% 30%, #2b4aa6, #0b1530 75%) padding-box, var(--rf) border-box;
+  box-shadow: 0 0 30px color-mix(in srgb, var(--rk) 70%, transparent);
+  animation: rankIn .7s cubic-bezier(.2, 1.5, .4, 1);
 }
-.grade.S { background: var(--r-sr); }
-.result-head .count { font-size: 1.6rem; font-weight: 900; }
-.result-head .msg { color: var(--muted); margin-top: 4px; }
-.stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-.stats div {
-  background: var(--card); border: 2px solid var(--line); border-radius: 14px;
-  padding: 10px; text-align: center; font-size: .8rem; color: var(--muted);
+@keyframes rankIn { from { transform: scale(2.2) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.rank b { font-size: 5rem; font-weight: 900; font-style: italic; line-height: 1; }
+.rank small { position: absolute; top: 12px; font-size: .62rem; letter-spacing: .3em; color: var(--muted); font-weight: 900; }
+.result-count { text-align: center; font-size: 1.5rem; font-weight: 900; }
+.result-count .num { font-size: 2rem; }
+.result-msg { text-align: center; color: #c9d6f5; font-weight: 700; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stats div { padding: 10px 6px; text-align: center; }
+.stats .k { display: block; font-size: .64rem; letter-spacing: .14em; color: var(--cyan); font-weight: 900; }
+.stats .v { font-size: 1.35rem; font-weight: 900; }
+.tag-new { display: inline-block; margin-left: 4px; padding: 0 6px; border-radius: 4px; font-size: .62rem; font-weight: 900; letter-spacing: .06em; color: #fff; background: linear-gradient(180deg, #ff6b8a, #d61f4a); vertical-align: 3px; animation: blink 1s infinite; }
+.clear-banner {
+  text-align: center; padding: 12px; font-weight: 900; font-size: 1.35rem; font-style: italic; letter-spacing: .1em;
+  background: linear-gradient(90deg, transparent, rgba(255, 190, 60, .35) 20%, rgba(255, 190, 60, .35) 80%, transparent);
+  border-top: 2px solid; border-bottom: 2px solid; border-image: linear-gradient(90deg, transparent, var(--gold-2), transparent) 1;
 }
-.stats b { display: block; font-size: 1.3rem; color: var(--ink); }
-.clear-msg { text-align: center; font-weight: 800; padding: 12px; border-radius: 14px; background: var(--land-soft); }
-.clear-msg.not { background: var(--card); border: 2px dashed var(--line); font-weight: 700; color: var(--muted); }
-.reward {
-  display: flex; gap: 14px; align-items: center;
-  background: var(--card); border: 3px solid var(--rc, var(--line)); border-radius: var(--radius); padding: 14px;
+.clear-banner small { display: block; font-size: .8rem; font-style: normal; letter-spacing: 0; color: #ffe9a8; }
+.fail-banner { text-align: center; padding: 10px; color: var(--muted); font-weight: 700; border: 1.5px dashed rgba(150, 190, 255, .3); border-radius: 12px; }
+.fail-banner b { display: block; font-size: 1.1rem; letter-spacing: .1em; color: #c9d6f5; }
+
+/* ガチャ演出(カードを開封) */
+.rewards { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; padding: 8px 0; }
+.reward-head { text-align: center; }
+.gacha { position: relative; width: 164px; height: 224px; perspective: 900px; border: 0; padding: 0; background: none; }
+.gacha::before {
+  content: ""; position: absolute; inset: -60px; z-index: 0; border-radius: 50%; opacity: 0;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--rc) 70%, transparent) 0 6deg, transparent 6deg 18deg);
+  -webkit-mask-image: radial-gradient(circle, #000 25%, transparent 68%);
+  mask-image: radial-gradient(circle, #000 25%, transparent 68%);
+  pointer-events: none;
 }
-.reward img { width: 88px; height: 88px; flex: none; }
-.reward .r-title { font-size: .85rem; color: var(--muted); }
-.reward .r-name { font-size: 1.2rem; font-weight: 900; }
-.new { color: #fff; background: var(--ng); border-radius: 6px; padding: 1px 6px; font-size: .75rem; font-weight: 900; margin-left: 6px; vertical-align: 2px; }
-.rarity { display: inline-block; padding: 1px 8px; border-radius: 6px; color: #fff; font-size: .75rem; font-weight: 900; background: var(--rc); }
+.gacha.revealed::before { animation: burst .9s ease-out forwards, spin 12s linear .9s infinite; }
+@keyframes burst { 0% { opacity: 0; transform: scale(.2); } 40% { opacity: 1; transform: scale(1.15); } 100% { opacity: .75; transform: scale(1); } }
+.g-inner { display: block; position: relative; z-index: 1; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .9s cubic-bezier(.2, .8, .2, 1); }
+.gacha.revealed .g-inner { transform: rotateY(180deg); }
+.g-face { position: absolute; inset: 0; border-radius: 14px; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.g-back {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  border: 3px solid transparent;
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .05) 0 6px, transparent 6px 12px) padding-box,
+    radial-gradient(circle at 50% 40%, #2b4aa6, #0b1530 75%) padding-box,
+    var(--frame-sr) border-box;
+  box-shadow: 0 0 24px var(--rc), 0 0 48px color-mix(in srgb, var(--rc) 50%, transparent);
+  animation: glow 1.3s ease-in-out infinite;
+}
+@keyframes glow { 50% { box-shadow: 0 0 34px var(--rc), 0 0 70px color-mix(in srgb, var(--rc) 70%, transparent); } }
+.g-back .q { font-size: 4rem; font-weight: 900; color: #fff; text-shadow: 0 0 18px var(--rc), 0 0 4px #fff; }
+.g-back .tap { font-size: .8rem; letter-spacing: .3em; font-weight: 900; color: #fff; animation: blink 1s infinite; }
+.g-front { transform: rotateY(180deg); }
+
+/* ---------- カード(図鑑・報酬共通) ---------- */
+.card {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  border: 3px solid transparent; border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--rc) 45%, transparent), transparent 62%) padding-box,
+    linear-gradient(180deg, #1c2f66, #0a1430) padding-box,
+    var(--frame) border-box;
+  box-shadow: 0 4px 0 #050b1c, 0 0 12px color-mix(in srgb, var(--rc) 35%, transparent);
+  color: #fff;
+}
+.card.r-N { --rc: var(--r-n); --frame: var(--frame-n); }
+.card.r-R { --rc: var(--r-r); --frame: var(--frame-r); }
+.card.r-SR { --rc: var(--r-sr); --frame: var(--frame-sr); }
+.card.r-SECRET {
+  --rc: var(--r-secret); --frame: var(--frame-secret);
+  background-size: 100% 100%, 100% 100%, 300% 100%;
+  animation: rainbow 4s linear infinite;
+}
+@keyframes rainbow { from { background-position: 0 0, 0 0, 0% 0; } to { background-position: 0 0, 0 0, 100% 0; } }
+.card.r-SR::after, .card.r-SECRET::after {
+  content: ""; position: absolute; top: -20%; bottom: -20%; left: -70%; width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .45), transparent);
+  transform: skewX(-18deg); animation: shine 3.6s ease-in-out infinite; pointer-events: none;
+}
+.card.locked { --rc: #334; --frame: linear-gradient(135deg, #3a4560, #1a2238); animation: none; }
+.card.locked::after { display: none; }
+.card.locked img { filter: brightness(0) opacity(.55) drop-shadow(0 0 1px rgba(150, 190, 255, .5)); }
+.rar {
+  display: inline-block; padding: 0 8px; border-radius: 4px; font-size: .7rem; font-weight: 900; font-style: italic; letter-spacing: .06em;
+  color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--rc) 85%, #ffffff), color-mix(in srgb, var(--rc) 70%, #000000));
+  text-shadow: 0 1px 0 #0008; border: 1px solid rgba(255, 255, 255, .6);
+}
+.card.r-SECRET .rar { background: linear-gradient(90deg, #ff5fb0, #ffc93c, #3fd37a, #3fa9ff, #c56bff); }
+.g-front.card { position: absolute; justify-content: center; padding: 10px; }
+.g-front img { width: 118px; height: 118px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
+.g-front .c-name { font-weight: 900; font-size: .98rem; text-align: center; line-height: 1.3; }
+.new-badge {
+  position: absolute; left: 6px; top: 6px; z-index: 2; padding: 0 6px; border-radius: 4px;
+  font-size: .7rem; font-weight: 900; font-style: italic; color: #fff;
+  background: linear-gradient(180deg, #ff6b8a, #d61f4a); border: 1px solid #ffd0da;
+}
+.dup { font-size: .68rem; color: var(--muted); }
 
 /* ---------- 図鑑 ---------- */
-.zukan-total { font-weight: 800; }
-.group h3 { font-size: 1rem; display: flex; align-items: center; gap: 8px; margin: 4px 0 8px; }
-.group h3 small { color: var(--muted); font-weight: 400; }
-.cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.cell {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 8px 4px 10px; background: var(--card);
-  border: 2px solid var(--line); border-top: 6px solid var(--rc); border-radius: 12px;
-  font-size: .78rem; line-height: 1.3; min-height: 132px;
+.collection-head { padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+.collection-head .pct { font-size: 2rem; font-weight: 900; }
+.collection-head .bar { flex: 1; }
+.collection-head .bar .mini-bar { height: 10px; }
+.collection-head .bar span { font-size: .8rem; color: var(--muted); font-weight: 700; }
+.group h3 {
+  display: flex; align-items: center; gap: 8px; margin: 6px 0 8px; padding: 6px 10px;
+  font-size: 1rem; font-weight: 900;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--fc) 55%, transparent), transparent 80%);
+  border-left: 4px solid var(--fc); border-radius: 4px;
 }
-.cell img { width: 72px; height: 72px; }
-.cell .c-name { font-weight: 800; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
-.locked img, .modal .locked { filter: brightness(0) opacity(.22); }
-@media (prefers-color-scheme: dark) { .locked img, .modal .locked { filter: brightness(0) invert(1) opacity(.18); } }
-.img-fallback { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--muted); }
+.group h3 small { margin-left: auto; color: #c9d6f5; font-weight: 800; }
+.cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.cell { padding: 8px 4px 8px; min-height: 140px; font-size: .76rem; line-height: 1.3; }
+.cell:active { transform: translateY(2px); }
+.cell img { width: 74px; height: 74px; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .5)); }
+.cell .c-name { font-weight: 900; text-align: center; word-break: keep-all; overflow-wrap: anywhere; min-height: 2.6em; display: flex; align-items: center; }
+.img-fallback { width: 74px; height: 74px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--muted); }
 
 /* ---------- モーダル・トースト ---------- */
 .modal {
-  position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
-  background: rgba(10, 20, 24, .6); padding: 24px;
+  position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle, rgba(10, 20, 50, .75), rgba(2, 5, 15, .92)); padding: 24px;
+  animation: enter .25s ease-out;
 }
 .modal[hidden] { display: none; }
-.modal-card {
-  width: 100%; max-width: 380px; background: var(--card); border-radius: 20px;
-  border-top: 10px solid var(--rc, var(--line));
-  padding: 20px; display: flex; flex-direction: column; gap: 10px; text-align: center;
+.modal-card { width: 100%; max-width: 360px; padding: 18px 18px 16px; gap: 10px; text-align: center; }
+.modal-card .big-img { position: relative; width: 200px; height: 200px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+.modal-card .big-img::before {
+  content: ""; position: absolute; inset: -20px; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--rc) 50%, transparent) 0 6deg, transparent 6deg 18deg);
+  -webkit-mask-image: radial-gradient(circle, #000 25%, transparent 70%);
+  mask-image: radial-gradient(circle, #000 25%, transparent 70%);
+  animation: spin 16s linear infinite;
 }
-.modal-card img { width: 180px; height: 180px; margin: 0 auto; }
-.modal-card h3 { font-size: 1.4rem; }
-.modal-card .desc { text-align: left; }
+.card.locked .big-img::before { display: none; }
+.modal-card img { position: relative; width: 180px; height: 180px; }
+.modal-card h3 { font-size: 1.45rem; font-weight: 900; }
+.modal-card .area-name { font-size: .8rem; color: #c9d6f5; font-weight: 700; }
+.modal-card .desc { text-align: left; font-size: .92rem; color: #dfe8ff; width: 100%; }
+.modal-card .btn { margin-top: 6px; }
 .toast {
-  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 30;
-  transform: translateX(-50%); background: var(--ink); color: var(--paper);
-  padding: 10px 18px; border-radius: 999px; font-size: .95rem; max-width: 90vw;
+  position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top, 0px)); z-index: 60;
+  transform: translateX(-50%); padding: 10px 20px; border-radius: 999px; max-width: 90vw;
+  font-size: .92rem; font-weight: 800; color: #fff;
+  background: linear-gradient(180deg, #2b4aa6, #0b1530); border: 2px solid var(--gold-2);
+  box-shadow: 0 0 18px rgba(255, 200, 60, .5);
 }
 .toast[hidden] { display: none; }
 
-.error-box {
-  background: var(--card); border: 2px solid var(--ng); border-radius: var(--radius); padding: 20px;
-  display: flex; flex-direction: column; gap: 12px;
-}
-.error-box h2 { color: var(--ng); }
+/* ---------- 読み込み・エラー ---------- */
+.loading { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.loading .spinner { width: 64px; height: 64px; border-radius: 50%; border: 4px solid rgba(63, 216, 255, .2); border-top-color: var(--cyan); animation: spin 1s linear infinite; box-shadow: 0 0 16px rgba(63, 216, 255, .4); }
+.loading p { font-weight: 900; letter-spacing: .3em; color: var(--cyan); font-size: .85rem; }
+.error-box { padding: 20px; display: flex; flex-direction: column; gap: 12px; border-color: rgba(255, 77, 106, .6); }
+.error-box h2 { color: #ff8da0; font-size: 1.25rem; }
+.error-box p { color: #dfe8ff; font-size: .92rem; }
 
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 </style>
 </head>
 <body>
 <main id="app" aria-live="polite">
-  <p class="notice" style="padding-top:40vh">読み込み中…</p>
+  <div class="loading"><div class="spinner"></div><p>NOW LOADING</p></div>
 </main>
+<div id="judge" class="judge" hidden aria-hidden="true"></div>
 <div id="modal" class="modal" hidden role="dialog" aria-modal="true"></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
@@ -321,6 +564,17 @@ const DEFAULT_DIFFS = [
   { id: 'easy', name: '★ やさしい' },
   { id: 'normal', name: '★★ ふつう' },
   { id: 'hard', name: '★★★ むずかしい' },
+];
+// 見た目用の色(分野IDごと。ない場合は順番に割り当て)
+const FIELD_COLORS = {
+  hokkaido_tohoku: '#3fa9ff', kanto: '#ff8a3d', chubu: '#3fd37a', kinki: '#ff4d6a',
+  chugoku_shikoku: '#b46bff', kyushu: '#ff5fb0', world: '#2fd8d0', industry: '#ffc93c',
+};
+const FALLBACK_COLORS = ['#3fa9ff', '#ff8a3d', '#3fd37a', '#ff4d6a', '#b46bff', '#ff5fb0', '#2fd8d0', '#ffc93c'];
+const TIERS = [
+  { en: 'EASY', color: '#3fd37a' },
+  { en: 'NORMAL', color: '#3fa9ff' },
+  { en: 'HARD', color: '#ff4d6a' },
 ];
 
 /* ---------- キャラクター図鑑(画像は images/chars/{id}.svg) ---------- */
@@ -400,11 +654,12 @@ const Progress = (() => {
 /* =================================================================
  *  状態とユーティリティ
  * ================================================================= */
-const S = { fields: [], diffs: [], questions: {}, generatedAt: null, field: null, quiz: null };
+const S = { fields: [], diffs: [], questions: {}, generatedAt: null, field: null, quiz: null, rewards: [] };
 let screen = 'loading';
 const $app = document.getElementById('app');
 const $modal = document.getElementById('modal');
 const $toast = document.getElementById('toast');
+const $judge = document.getElementById('judge');
 
 const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -444,10 +699,17 @@ const fieldCleared = (fid) => S.diffs.some((d) => isCleared(fid, d.id));
 const playableFields = () => S.fields.filter((f) => (S.questions[f.id] || []).length > 0);
 const allFieldsCleared = () => playableFields().length > 0 && playableFields().every((f) => fieldCleared(f.id));
 const countOf = (fid, d) => (S.questions[fid] || []).filter((q) => q.difficulty === d.name).length;
+const fieldColor = (f) => FIELD_COLORS[f.id] || FALLBACK_COLORS[Math.max(0, S.fields.indexOf(f)) % FALLBACK_COLORS.length];
+const tierOf = (d) => TIERS[Math.max(0, S.diffs.indexOf(d)) % TIERS.length];
+const shortDiff = (d) => d.name.replace(/^★+\s*/, '');
 
-function charImg(c, cls, size) {
-  return `<img src="images/chars/${esc(c.id)}.svg" alt="${esc(c.name)}" width="${size}" height="${size}" class="${cls || ''}" loading="lazy"
+function charImg(c, size) {
+  return `<img src="images/chars/${esc(c.id)}.svg" alt="${esc(c.name)}" width="${size}" height="${size}" loading="lazy"
     onerror="this.outerHTML='<span class=&quot;img-fallback&quot;>?</span>'">`;
+}
+function rarLabel(c) {
+  const r = RARITY[c.rarity] || RARITY.N;
+  return `<span class="rar">${r.label}</span>`;
 }
 
 /* =================================================================
@@ -499,18 +761,20 @@ async function loadData() {
 /* =================================================================
  *  画面: タイトル
  * ================================================================= */
-function contourSvg() {
-  // 等高線(地形図の山)をイメージした背景
-  const rings = [];
-  for (let i = 0; i < 9; i++) {
-    const rx = 40 + i * 34, ry = 28 + i * 24;
-    rings.push(`<path d="M${330 - rx} 70 C ${330 - rx} ${70 - ry}, ${330 + rx * 0.9} ${70 - ry * 1.1}, ${330 + rx} 72
-      S ${330 + rx * 0.4} ${70 + ry * 1.05}, ${330 - rx * 0.2} ${70 + ry} S ${330 - rx} ${70 + ry * 0.4}, ${330 - rx} 70 Z"
-      fill="none" stroke="#ffffff" stroke-opacity="${(0.32 - i * 0.025).toFixed(3)}" stroke-width="${i % 4 === 3 ? 2.6 : 1.4}"/>`);
-  }
-  return `<svg class="contours" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    ${rings.join('')}
-    <path d="M318 62 l12 -20 12 20 z" fill="#ffffff" fill-opacity=".85"/>
+function globeSvg() {
+  // 回転する地球儀(ワイヤーフレーム)。SVGアニメーションなので外部ファイル不要
+  const merid = [0, 1, 2, 3].map((i) => `
+    <ellipse cx="100" cy="100" rx="80" ry="80" fill="none" stroke="#3fd8ff" stroke-opacity=".55" stroke-width="1.2">
+      <animate attributeName="rx" values="80;0;80" dur="8s" begin="${-i * 2}s" repeatCount="indefinite"/>
+    </ellipse>`).join('');
+  return `<svg class="globe" viewBox="0 0 200 200" aria-hidden="true">
+    <defs><radialGradient id="gg" cx="40%" cy="35%"><stop offset="0" stop-color="#2f66c9" stop-opacity=".55"/><stop offset="1" stop-color="#0b1530" stop-opacity="0"/></radialGradient></defs>
+    <circle cx="100" cy="100" r="80" fill="url(#gg)"/>
+    ${merid}
+    <ellipse cx="100" cy="100" rx="80" ry="22" fill="none" stroke="#3fd8ff" stroke-opacity=".4"/>
+    <ellipse cx="100" cy="62" rx="68" ry="15" fill="none" stroke="#3fd8ff" stroke-opacity=".3"/>
+    <ellipse cx="100" cy="138" rx="68" ry="15" fill="none" stroke="#3fd8ff" stroke-opacity=".3"/>
+    <circle cx="100" cy="100" r="80" fill="none" stroke="#9cf0ff" stroke-width="2" stroke-opacity=".8"/>
   </svg>`;
 }
 
@@ -520,25 +784,23 @@ function renderTitle() {
   let updated = '';
   if (S.generatedAt) {
     const d = new Date(S.generatedAt);
-    if (!isNaN(d) && d.getFullYear() > 2000) {
-      updated = `問題データ: ${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 更新`;
-    } else {
-      updated = 'サンプル問題で動いています';
-    }
+    if (!isNaN(d) && d.getFullYear() > 2000) updated = `問題データ ${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} 更新`;
+    else updated = 'サンプル問題で動作中';
   }
   render('title', `
     <section class="screen">
-      <div class="hero">
-        ${contourSvg()}
-        <h1>地理<br>クイズ</h1>
-        <p>中学受験の地理を、4択でおぼえよう</p>
+      <div class="title-wrap">
+        ${globeSvg()}
+        <span class="logo-en label-en">GEO QUEST</span>
+        <h1 class="logo gold-text">地理クイズ</h1>
+        <p class="logo-sub">中学受験の地理を、4択バトルで制覇せよ</p>
       </div>
-      <button class="btn primary big" data-action="fields">はじめる</button>
-      <div class="title-stats">
-        <div>クリアした分野<b>${cleared} / ${playableFields().length}</b></div>
-        <div>集めたキャラ<b>${owned} / ${CHARACTERS.length}</b></div>
+      <button class="btn primary big pulse" data-action="fields">START</button>
+      <div class="hud-row">
+        <div class="panel hud"><span class="ico">🏆</span><span><span class="k">制覇エリア</span><span class="v num">${cleared}<small> / ${playableFields().length}</small></span></span></div>
+        <div class="panel hud"><span class="ico">🃏</span><span><span class="k">キャラ図鑑</span><span class="v num">${owned}<small> / ${CHARACTERS.length}</small></span></span></div>
       </div>
-      <button class="btn" data-action="zukan">キャラ図鑑を見る</button>
+      <button class="btn" data-action="zukan">キャラ図鑑</button>
       ${Progress.available ? '' : '<p class="notice">この端末の設定では記録を保存できません(プライベートブラウズなど)。遊ぶことはできます。</p>'}
       ${updated ? `<p class="notice">${esc(updated)}</p>` : ''}
       <button class="link" data-action="reset">記録をリセット</button>
@@ -546,33 +808,41 @@ function renderTitle() {
 }
 
 /* =================================================================
- *  画面: 分野選択
+ *  画面: エリア(分野)選択
  * ================================================================= */
+function topbar(back, en, ja) {
+  return `<div class="topbar">
+      <button class="back" data-action="${back}" aria-label="もどる">‹</button>
+      <div class="ttl"><span class="label-en">${en}</span><h2>${ja}</h2></div>
+    </div>`;
+}
+
+function starsHtml(f) {
+  return S.diffs.map((d) => `<span class="s ${isCleared(f.id, d.id) ? 'on' : ''}" title="${esc(d.name)}">★</span>`).join('');
+}
+
 function renderFields() {
   const cards = S.fields.map((f) => {
     const n = (S.questions[f.id] || []).length;
-    const marks = S.diffs.map((d) => {
-      const on = isCleared(f.id, d.id);
-      return `<span class="mark ${on ? 'on' : ''}" title="${esc(d.name)}${on ? ' クリア' : ''}">${on ? '✓' : ''}</span>`;
-    }).join('');
     const chars = charsOf(f.id);
     const own = chars.filter((c) => isOwned(c.id)).length;
+    const allClear = n && S.diffs.every((d) => !countOf(f.id, d) || isCleared(f.id, d.id));
     return `
-      <button class="field" data-action="field" data-id="${esc(f.id)}" ${n ? '' : 'disabled'}>
-        <span class="f-icon" aria-hidden="true">${esc(f.icon || '📘')}</span>
-        <span class="f-name">${esc(f.name)}</span>
-        <span class="f-meta">${n ? `${n}問` : '準備中'}${chars.length ? `  キャラ ${own}/${chars.length}` : ''}</span>
-        <span class="f-row"><span class="marks" aria-label="クリアした難易度">${marks}</span></span>
+      <button class="area" style="--fc:${fieldColor(f)}" data-action="field" data-id="${esc(f.id)}" ${n ? '' : 'disabled'}>
+        ${n ? '' : '<span class="soon">COMING SOON</span>'}
+        ${allClear ? '<span class="comp">COMPLETE</span>' : ''}
+        <span class="badge-ico" aria-hidden="true">${esc(f.icon || '📘')}</span>
+        <span class="a-name">${esc(f.name)}</span>
+        <span class="stars" aria-label="クリアした難易度">${starsHtml(f)}</span>
+        <span class="a-meta">${n ? `全${n}問` : '準備中'}${chars.length ? `/キャラ ${own}/${chars.length}` : ''}</span>
+        ${chars.length ? `<span class="mini-bar"><i style="width:${(own / chars.length) * 100}%"></i></span>` : ''}
       </button>`;
   }).join('');
   render('fields', `
     <section class="screen">
-      <div class="topbar">
-        <button class="back" data-action="title" aria-label="タイトルにもどる">‹</button>
-        <h2>分野をえらぶ</h2>
-      </div>
-      <p class="legend"><span class="mark on">✓</span>= クリアした難易度(左から ${S.diffs.map((d) => esc(d.name.replace(/^★+\s*/, ''))).join('・')})</p>
-      <div class="fields">${cards}</div>
+      ${topbar('title', 'AREA SELECT', 'エリアをえらぶ')}
+      <p class="lead">★ はクリアした難易度(${S.diffs.map((d) => esc(shortDiff(d))).join('・')})</p>
+      <div class="areas">${cards}</div>
     </section>`);
 }
 
@@ -587,21 +857,19 @@ function renderDiffs(fid) {
     const n = countOf(f.id, d);
     const best = Progress.data.best[`${f.id}:${d.id}`];
     const cl = isCleared(f.id, d.id);
-    const meta = n ? `${n}問${best ? `  ベスト ${best}点` : ''}` : 'まだ問題がありません';
+    const t = tierOf(d);
     return `
-      <button class="diff" data-action="start" data-id="${esc(d.id)}" ${n ? '' : 'disabled'}>
+      <button class="diff" style="--dc:${t.color}" data-action="start" data-id="${esc(d.id)}" ${n ? '' : 'disabled'}>
+        <span class="tier"><span>${t.en}</span></span>
         <span class="d-name">${esc(d.name)}</span>
-        <span class="badge ${cl ? '' : 'todo'}">${cl ? 'クリア' : '未クリア'}</span>
-        <span class="d-meta">${meta}</span>
+        <span class="d-meta">${n ? `全${n}問` : 'まだ問題がありません'}${best ? `/BEST <span class="num">${best}</span>` : ''}</span>
+        ${cl ? '<span class="stamp">CLEAR</span>' : ''}
       </button>`;
   }).join('');
   render('diffs', `
     <section class="screen">
-      <div class="topbar">
-        <button class="back" data-action="fields" aria-label="分野選択にもどる">‹</button>
-        <h2>${esc(f.icon || '')} ${esc(f.name)}</h2>
-      </div>
-      <p class="lead">正答率${Math.round(CLEAR_RATE * 100)}%以上でクリア。クリアするとキャラが1体もらえます。</p>
+      ${topbar('fields', 'DIFFICULTY', `${esc(f.icon || '')} ${esc(f.name)}`)}
+      <p class="lead">正答率${Math.round(CLEAR_RATE * 100)}%以上でクリア。クリアするとキャラカードを1枚ゲット!</p>
       <div class="diffs">${rows}</div>
     </section>`);
 }
@@ -617,11 +885,20 @@ function startQuiz(did) {
   if (QUESTION_ORDER === 'random') shuffle(list);
   if (typeof QUESTION_LIMIT === 'number' && QUESTION_LIMIT > 0) list = list.slice(0, QUESTION_LIMIT);
   if (!list.length) { toast('この難易度の問題はまだありません'); return; }
-  S.quiz = { f, d, list, i: 0, score: 0, combo: 0, maxCombo: 0, correct: 0, answered: false };
+  S.quiz = { f, d, list, i: 0, score: 0, combo: 0, maxCombo: 0, correct: 0, answered: false, results: [] };
   renderQuestion();
 }
 
-function comboText(combo) { return combo >= 2 ? `${combo}コンボ!` : ''; }
+function comboText(combo) { return combo >= 2 ? `${combo} COMBO!` : ''; }
+
+function segsHtml(Q) {
+  return Q.list.map((_, i) => {
+    let cls = '';
+    if (i < Q.results.length) cls = Q.results[i] ? 'ok' : 'ng';
+    else if (i === Q.i) cls = 'cur';
+    return `<i class="${cls}"></i>`;
+  }).join('');
+}
 
 function renderQuestion() {
   const Q = S.quiz;
@@ -629,26 +906,39 @@ function renderQuestion() {
   Q.answered = false;
   const choices = q.choices.map((c, i) => `
     <button class="choice" data-action="answer" data-i="${i}">
-      <span class="letter" aria-hidden="true">${LETTERS[i]}</span><span>${esc(c)}</span>
+      <span class="letter" aria-hidden="true"><span>${LETTERS[i]}</span></span><span>${esc(c)}</span>
     </button>`).join('');
   render('quiz', `
     <section class="screen">
-      <div class="quiz-top">
+      <div class="quiz-hud">
         <button class="back" data-action="quit" aria-label="クイズをやめる">✕</button>
-        <span class="pos">${Q.i + 1} / ${Q.list.length}問</span>
-        <span class="score">スコア<b id="score">${Q.score}</b></span>
+        <div class="stage"><span>${esc(tierOf(Q.d).en)}</span><b>${esc(Q.f.name)}</b></div>
+        <div class="panel score-box" id="scorebox"><span class="k">SCORE</span><span class="v num gold-text" id="score">${Q.score}</span></div>
       </div>
-      <div class="bar" aria-hidden="true"><i style="width:${(Q.i / Q.list.length) * 100}%"></i></div>
-      <div class="q-info">
-        <span class="chip">${esc(Q.f.name)}</span>
-        <span class="chip">${esc(Q.d.name)}</span>
-        <span class="chip">正解 <b id="correct">${Q.correct}</b></span>
-        <span class="chip combo" id="combo">${comboText(Q.combo)}</span>
+      <div class="segs" id="segs" aria-hidden="true">${segsHtml(Q)}</div>
+      <div class="info-row">
+        <span class="pos num">${Q.i + 1} / ${Q.list.length}</span>
+        <span class="combo" id="combo">${comboText(Q.combo)}</span>
       </div>
-      <div class="question">${esc(q.question)}</div>
+      <div class="panel q-panel">
+        <span class="q-tag">Q.${Q.i + 1}</span>
+        <p class="q-text">${esc(q.question)}</p>
+      </div>
       <div class="choices">${choices}</div>
-      <div id="feedback" class="feedback" hidden></div>
+      <div id="feedback" class="panel feedback" hidden></div>
     </section>`);
+}
+
+let judgeTimer = null;
+function showJudge(ok) {
+  $judge.innerHTML = `<div class="j ${ok ? 'ok' : 'ng'}">${ok ? '正解!' : 'ざんねん…'}</div>`;
+  $judge.hidden = false;
+  clearTimeout(judgeTimer);
+  judgeTimer = setTimeout(() => { $judge.hidden = true; $judge.innerHTML = ''; }, 1000);
+  const fl = document.createElement('div');
+  fl.className = `flash ${ok ? 'ok' : 'ng'}`;
+  document.body.appendChild(fl);
+  setTimeout(() => fl.remove(), 500);
 }
 
 function answer(i) {
@@ -657,22 +947,34 @@ function answer(i) {
   Q.answered = true;
   const q = Q.list[Q.i];
   const ok = i === q.answer;
+  let gained = 0;
   if (ok) {
     Q.correct += 1;
     Q.combo += 1;
     Q.maxCombo = Math.max(Q.maxCombo, Q.combo);
-    Q.score += 100 + Math.min(Q.combo - 1, 10) * 10; // コンボでボーナス(最大+100)
+    gained = 100 + Math.min(Q.combo - 1, 10) * 10; // コンボでボーナス(最大+100)
+    Q.score += gained;
   } else {
     Q.combo = 0;
   }
+  Q.results.push(ok);
+
   document.querySelectorAll('.choice').forEach((b, idx) => {
     b.disabled = true;
     if (idx === q.answer) b.classList.add('correct');
     else if (idx === i) b.classList.add('wrong');
     else b.classList.add('dim');
   });
+  showJudge(ok);
   document.getElementById('score').textContent = Q.score;
-  document.getElementById('correct').textContent = Q.correct;
+  document.getElementById('segs').innerHTML = segsHtml(Q);
+  if (gained) {
+    const fp = document.createElement('span');
+    fp.className = 'float-pt num';
+    fp.textContent = `+${gained}`;
+    document.getElementById('scorebox').appendChild(fp);
+    setTimeout(() => fp.remove(), 1000);
+  }
   const $combo = document.getElementById('combo');
   $combo.textContent = comboText(Q.combo);
   $combo.classList.remove('pop');
@@ -682,12 +984,14 @@ function answer(i) {
   const last = Q.i + 1 >= Q.list.length;
   const fb = document.getElementById('feedback');
   fb.innerHTML = `
-    <p class="verdict ${ok ? 'ok' : 'ng'}">${ok ? '⭕ 正解!' : '❌ ざんねん…'}</p>
-    ${ok ? '' : `<p>正解は <b>${LETTERS[q.answer]}. ${esc(q.choices[q.answer])}</b></p>`}
+    <p class="verdict ${ok ? 'ok' : 'ng'}">${ok ? '◯ 正解!' : '✕ ざんねん…'}</p>
+    ${ok ? '' : `<p class="answer-line">正解は <b>${LETTERS[q.answer]}. ${esc(q.choices[q.answer])}</b></p>`}
     ${q.hint ? `<p class="hint"><span>解説</span>${esc(q.hint)}</p>` : ''}
-    <button class="btn primary" data-action="next">${last ? '結果を見る' : '次の問題へ'}</button>`;
+    <button class="btn primary" data-action="next">${last ? 'RESULT へ' : 'NEXT ▶'}</button>`;
   fb.hidden = false;
-  try { fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) { fb.scrollIntoView(); }
+  setTimeout(() => {
+    try { fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) { fb.scrollIntoView(); }
+  }, 350);
 }
 
 function nextQuestion() {
@@ -721,7 +1025,7 @@ function giveChar(c) {
 }
 
 /* =================================================================
- *  画面: 結果
+ *  画面: リザルト
  * ================================================================= */
 function finishQuiz() {
   const Q = S.quiz;
@@ -749,86 +1053,110 @@ function finishQuiz() {
     if (s) rewards.push(giveChar(s));
   }
   Progress.save();
+  S.rewards = rewards;
 
-  let grade = 'C', msg = 'ここからが伸びしろ。解説を読んで、もう一度挑戦しよう。';
-  if (perfect) { grade = 'S'; msg = 'パーフェクト! 地理マスターだ!'; }
-  else if (rate >= 0.8) { grade = 'A'; msg = 'すばらしい! この分野はばっちり。'; }
+  let grade = 'C', msg = 'ここからが伸びしろ。解説を読んで再挑戦しよう!';
+  if (perfect) { grade = 'S'; msg = 'パーフェクト! 地理マスターの称号を授けよう!'; }
+  else if (rate >= 0.8) { grade = 'A'; msg = 'すばらしい! このエリアはほぼ制覇!'; }
   else if (rate >= 0.6) { grade = 'B'; msg = 'あと少し! まちがえた問題を見直そう。'; }
+  const RANK_STYLE = {
+    S: { rk: 'var(--r-sr)', rf: 'var(--frame-sr)' },
+    A: { rk: '#ff8a3d', rf: 'linear-gradient(135deg,#ffe0c4,#ff8a3d,#a3420a,#ffc08a)' },
+    B: { rk: 'var(--r-r)', rf: 'var(--frame-r)' },
+    C: { rk: 'var(--r-n)', rf: 'var(--frame-n)' },
+  }[grade];
 
-  const clearMsg = cleared
-    ? `<p class="clear-msg">${firstClear ? '🎉 はじめてクリア!' : '✓ クリア!'}(${esc(Q.f.name)} ${esc(Q.d.name)})</p>`
-    : `<p class="clear-msg not">正答率${Math.round(CLEAR_RATE * 100)}%以上でクリア。キャラがもらえるよ。</p>`;
+  const banner = cleared
+    ? `<div class="clear-banner"><span class="gold-text">${firstClear ? 'STAGE CLEAR!' : 'CLEAR!'}</span><small>${esc(Q.f.name)} ${esc(Q.d.name)}${firstClear ? ' はじめてクリア' : ''}</small></div>`
+    : `<div class="fail-banner"><b>FAILED…</b>正答率${Math.round(CLEAR_RATE * 100)}%以上でクリア。キャラカードがもらえるよ</div>`;
 
-  const rewardHtml = rewards.map(({ c, isNew }) => {
-    const r = RARITY[c.rarity] || RARITY.N;
-    return `
-      <button class="reward" style="--rc:${r.color}" data-action="char" data-id="${esc(c.id)}">
-        ${charImg(c, '', 88)}
-        <span style="text-align:left">
-          <span class="r-title">${c.rarity === 'SECRET' ? 'シークレットキャラ出現!' : 'キャラをゲット!'}</span><br>
-          <span class="rarity" style="--rc:${r.color}">${r.label}</span>
-          <span class="r-name">${esc(c.name)}</span>${isNew ? '<span class="new">NEW</span>' : ''}
-          ${isNew ? '' : '<br><span class="r-title">(もう持っているキャラ)</span>'}
-        </span>
-      </button>`;
-  }).join('');
+  const rewardHtml = rewards.length ? `
+    <p class="reward-head label-en">${rewards.some((r) => r.c.rarity === 'SECRET') ? 'SECRET CARD APPEARED!!' : 'GET CARD!'}</p>
+    <div class="rewards">${rewards.map(({ c, isNew }, idx) => {
+      const r = RARITY[c.rarity] || RARITY.N;
+      return `
+        <button class="gacha" style="--rc:${r.color}" data-action="reveal" data-idx="${idx}" aria-label="カードを開封する">
+          <span class="g-inner">
+            <span class="g-face g-back"><span class="q">?</span><span class="tap">TAP!</span></span>
+            <span class="g-face g-front card r-${esc(c.rarity)}">
+              ${isNew ? '<span class="new-badge">NEW</span>' : ''}
+              ${charImg(c, 118)}
+              ${rarLabel(c)}
+              <span class="c-name">${esc(c.name)}</span>
+              ${isNew ? '' : '<span class="dup">(所持済み)</span>'}
+            </span>
+          </span>
+        </button>`;
+    }).join('')}</div>` : '';
 
   render('result', `
     <section class="screen">
-      <div class="result-head">
-        <div class="grade ${grade}" aria-label="評価 ${grade}">${grade}</div>
-        <p class="count">${total}問中 ${Q.correct}問正解</p>
-        <p class="msg">${esc(msg)}</p>
+      <div class="result-title"><span class="label-en">${esc(Q.f.name)} / ${esc(tierOf(Q.d).en)}</span><h2 class="gold-text">RESULT</h2></div>
+      <div class="rank-wrap" style="--rk:${RANK_STYLE.rk}">
+        <div class="rank" style="--rf:${RANK_STYLE.rf}" aria-label="ランク ${grade}"><small>RANK</small><b class="gold-text">${grade}</b></div>
       </div>
+      <p class="result-count"><span class="num">${Q.correct}</span> / ${total} 問正解</p>
+      <p class="result-msg">${esc(msg)}</p>
       <div class="stats">
-        <div>スコア<b>${Q.score}</b></div>
-        <div>ベスト<b>${Math.max(prevBest, Q.score)}</b>${newBest ? '<span class="new">更新</span>' : ''}</div>
-        <div>最大コンボ<b>${Q.maxCombo}</b></div>
+        <div class="panel"><span class="k">SCORE</span><span class="v num">${Q.score}</span></div>
+        <div class="panel"><span class="k">BEST</span><span class="v num">${Math.max(prevBest, Q.score)}</span>${newBest ? '<span class="tag-new">NEW</span>' : ''}</div>
+        <div class="panel"><span class="k">MAX COMBO</span><span class="v num">${Q.maxCombo}</span></div>
       </div>
-      ${clearMsg}
+      ${banner}
       ${rewardHtml}
-      <button class="btn primary" data-action="retry">もう一度</button>
+      <button class="btn primary" data-action="retry">もう一度挑戦</button>
       <button class="btn" data-action="field" data-id="${esc(Q.f.id)}">難易度をえらぶ</button>
-      <button class="btn" data-action="fields">分野をえらぶ</button>
+      <button class="btn" data-action="fields">エリアをえらぶ</button>
       <button class="btn" data-action="zukan">キャラ図鑑</button>
     </section>`);
-  if (rewards.some((r) => r.isNew)) toast('図鑑に新しいキャラが登録されました');
+}
+
+function reveal(el) {
+  if (el.classList.contains('revealed')) {
+    const r = S.rewards[Number(el.dataset.idx)];
+    if (r) openChar(r.c.id);
+    return;
+  }
+  el.classList.add('revealed');
+  const r = S.rewards[Number(el.dataset.idx)];
+  if (r && r.isNew) setTimeout(() => toast(`「${r.c.name}」が図鑑に登録されました`), 900);
 }
 
 /* =================================================================
  *  画面: 図鑑
  * ================================================================= */
+function cellHtml(c) {
+  const own = isOwned(c.id);
+  return `
+    <button class="card cell r-${esc(c.rarity)} ${own ? '' : 'locked'}" data-action="char" data-id="${esc(c.id)}">
+      ${charImg(c, 74)}
+      <span class="c-name">${own ? esc(c.name) : '???'}</span>
+      ${rarLabel(c)}
+    </button>`;
+}
+
 function renderZukan() {
-  const cell = (c) => {
-    const own = isOwned(c.id);
-    const r = RARITY[c.rarity] || RARITY.N;
-    return `
-      <button class="cell ${own ? '' : 'locked'}" style="--rc:${r.color}" data-action="char" data-id="${esc(c.id)}">
-        ${charImg(c, '', 72)}
-        <span class="c-name">${own ? esc(c.name) : '???'}</span>
-        <span class="rarity" style="--rc:${r.color}">${r.label}</span>
-      </button>`;
-  };
   const groups = S.fields.map((f) => {
     const list = charsOf(f.id);
     if (!list.length) return '';
     const own = list.filter((c) => isOwned(c.id)).length;
-    return `<div class="group"><h3>${esc(f.icon || '')} ${esc(f.name)} <small>${own}/${list.length}</small></h3>
-      <div class="cells">${list.map(cell).join('')}</div></div>`;
+    return `<div class="group" style="--fc:${fieldColor(f)}"><h3>${esc(f.icon || '')} ${esc(f.name)} <small class="num">${own}/${list.length}</small></h3>
+      <div class="cells">${list.map(cellHtml).join('')}</div></div>`;
   }).join('');
   const secrets = secretChars();
   const secOwn = secrets.filter((c) => isOwned(c.id)).length;
   const total = CHARACTERS.filter((c) => isOwned(c.id)).length;
+  const pct = CHARACTERS.length ? Math.floor((total / CHARACTERS.length) * 100) : 0;
   render('zukan', `
     <section class="screen">
-      <div class="topbar">
-        <button class="back" data-action="title" aria-label="タイトルにもどる">‹</button>
-        <h2>キャラ図鑑</h2>
+      ${topbar('title', 'COLLECTION', 'キャラ図鑑')}
+      <div class="panel gold-frame collection-head">
+        <span class="pct num gold-text">${pct}%</span>
+        <span class="bar"><span>集めたキャラ <b class="num">${total}</b> / ${CHARACTERS.length}</span><span class="mini-bar"><i style="width:${pct}%"></i></span></span>
       </div>
-      <p class="zukan-total">集めたキャラ ${total} / ${CHARACTERS.length}</p>
       ${groups}
-      <div class="group"><h3>✨ シークレット <small>${secOwn}/${secrets.length}</small></h3>
-        <div class="cells">${secrets.map(cell).join('')}</div></div>
+      <div class="group" style="--fc:var(--r-secret)"><h3>✨ シークレット <small class="num">${secOwn}/${secrets.length}</small></h3>
+        <div class="cells">${secrets.map(cellHtml).join('')}</div></div>
     </section>`);
 }
 
@@ -836,20 +1164,19 @@ function openChar(id) {
   const c = CHARACTERS.find((x) => x.id === id);
   if (!c) return;
   const own = isOwned(c.id);
-  const r = RARITY[c.rarity] || RARITY.N;
   const f = fieldById(c.field);
   const where = c.rarity === 'SECRET' ? 'シークレット' : (f ? f.name : '');
   const how = c.rarity === 'SECRET'
-    ? 'すべての分野をクリアしたあと、満点を取るとまれに出会えます。'
+    ? 'すべてのエリアをクリアしたあと、満点を取るとまれに出会えます。'
     : `「${where}」をクリアすると出会えるかも。`;
   $modal.innerHTML = `
-    <div class="modal-card" style="--rc:${r.color}">
-      ${charImg(c, own ? '' : 'locked', 180)}
-      <p><span class="rarity" style="--rc:${r.color}">${r.label}</span> ${esc(where)}</p>
+    <div class="card modal-card r-${esc(c.rarity)} ${own ? '' : 'locked'}">
+      <div class="big-img">${charImg(c, 180)}</div>
+      <p>${rarLabel(c)} <span class="area-name">${esc(where)}</span></p>
       <h3>${own ? esc(c.name) : '???'}</h3>
       <p class="desc">${own ? esc(c.desc) : esc(how)}</p>
-      ${own && Progress.data.owned[c.id] > 1 ? `<p class="notice">${Progress.data.owned[c.id]}回ゲット</p>` : ''}
-      <button class="btn primary" data-action="close-modal">とじる</button>
+      ${own && Progress.data.owned[c.id] > 1 ? `<p class="dup">${Progress.data.owned[c.id]}回ゲット</p>` : ''}
+      <button class="btn" data-action="close-modal">とじる</button>
     </div>`;
   $modal.hidden = false;
   const btn = $modal.querySelector('[data-action="close-modal"]');
@@ -863,7 +1190,8 @@ function closeModal() { $modal.hidden = true; $modal.innerHTML = ''; }
 function renderError() {
   render('error', `
     <section class="screen" style="padding-top:12vh">
-      <div class="error-box">
+      <div class="panel error-box">
+        <span class="label-en">CONNECTION ERROR</span>
         <h2>問題データが見つかりません</h2>
         <p>questions.json を読み込めませんでした。次を確認してください。</p>
         <p>・インターネットにつながっているか(はじめて開くときは通信が必要です)<br>
@@ -913,6 +1241,7 @@ document.addEventListener('click', (e) => {
     case 'quit':
       if (confirm('クイズをやめますか?(このプレイの記録は残りません)')) renderDiffs(S.quiz.f.id);
       break;
+    case 'reveal': reveal(el); break;
     case 'zukan': renderZukan(); break;
     case 'char': openChar(id); break;
     case 'close-modal': closeModal(); break;
@@ -936,7 +1265,7 @@ document.addEventListener('keydown', (e) => {
  *  起動
  * ================================================================= */
 async function init() {
-  render('loading', '<p class="notice" style="padding-top:40vh">読み込み中…</p>');
+  render('loading', '<div class="loading"><div class="spinner"></div><p>NOW LOADING</p></div>');
   const data = await loadData();
   if (!data) { renderError(); return; }
   Object.assign(S, data);

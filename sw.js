@@ -7,7 +7,7 @@
 //    (例: geo-quiz-v1 → geo-quiz-v2)古いキャッシュは自動で消えます。
 //    questions.json の更新だけなら、上げなくても反映されます。
 // =====================================================================
-const CACHE_NAME = 'geo-quiz-v1';
+const CACHE_NAME = 'geo-quiz-v2';
 
 const PRECACHE = [
   './',

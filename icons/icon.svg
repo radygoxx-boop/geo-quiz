@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>地理クイズ</title>
+  <rect width="512" height="512" rx="112" fill="#1d5c84"/>
+  <circle cx="256" cy="256" r="168" fill="#3b8fc0"/>
+  <path d="M170 150 q40 -30 80 -6 q30 18 18 52 q-12 30 -52 28 q-36 -2 -52 -28 q-12 -24 6 -46 Z" fill="#7cc35a"/>
+  <path d="M276 250 q46 -20 76 14 q22 26 6 62 q-18 40 -64 42 q-36 2 -44 -36 q-8 -52 26 -82 Z" fill="#7cc35a"/>
+  <path d="M150 290 q22 -8 34 10 q10 18 -6 32 q-18 14 -32 -4 q-12 -20 4 -38 Z" fill="#7cc35a"/>
+  <circle cx="256" cy="256" r="168" fill="none" stroke="#e9f4f8" stroke-width="10"/>
+  <ellipse cx="256" cy="256" rx="70" ry="168" fill="none" stroke="#e9f4f8" stroke-width="6" opacity=".7"/>
+  <line x1="88" y1="256" x2="424" y2="256" stroke="#e9f4f8" stroke-width="6" opacity=".7"/>
+  <path d="M362 104 a42 42 0 0 1 42 42 c0 34 -42 78 -42 78 s-42 -44 -42 -78 a42 42 0 0 1 42 -42 Z" fill="#e8553d" stroke="#ffffff" stroke-width="8"/>
+  <circle cx="362" cy="146" r="14" fill="#ffffff"/>
+</svg>

@@ -7,7 +7,7 @@
 //    (例: geo-quiz-v1 → geo-quiz-v2)古いキャッシュは自動で消えます。
 //    questions.json の更新だけなら、上げなくても反映されます。
 // =====================================================================
-const CACHE_NAME = 'geo-quiz-v2';
+const CACHE_NAME = 'geo-quiz-v3';
 
 const PRECACHE = [
   './',
@@ -19,6 +19,10 @@ const PRECACHE = [
   './images/icons/icon-512.png',
   './images/icons/icon-maskable-512.png',
   './images/icons/apple-touch-icon.png',
+  './fonts/geo-jp-500.woff2',
+  './fonts/geo-jp-800.woff2',
+  './fonts/geo-latin-600.woff2',
+  './fonts/geo-latin-700.woff2',
   './images/chars/hokkaido_tohoku_1.svg',
   './images/chars/hokkaido_tohoku_2.svg',
   './images/chars/hokkaido_tohoku_3.svg',
